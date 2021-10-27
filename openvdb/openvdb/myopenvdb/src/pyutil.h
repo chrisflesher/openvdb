@@ -206,8 +206,10 @@ extractArg(
     int argIdx = 0, // args are numbered starting from 1
     const char* expectedType = nullptr)
 {
-    T val = py::cast<T>(obj);
-    if (!val.check()) {
+    T val;
+    try {
+        val = py::cast<T>(obj);
+    } catch (py::cast_error) {
         // Generate an error string of the form
         // "expected <expectedType>, found <actualType> as argument <argIdx>
         // to <className>.<functionName>()", where <argIdx> and <className>
@@ -226,7 +228,7 @@ extractArg(
         PyErr_SetString(PyExc_TypeError, os.str().c_str());
         py::error_already_set();
     }
-    return val();
+    return val;
 }
 
 

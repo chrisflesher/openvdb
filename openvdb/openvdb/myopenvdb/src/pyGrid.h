@@ -9,6 +9,7 @@
 #define OPENVDB_PYGRID_HAS_BEEN_INCLUDED
 
 #include <pybind11/pybind11.h>
+//#include <pybind11/embed.h>
 #ifdef PY_OPENVDB_USE_NUMPY
 // py::numeric was replaced with py::numpy in Boost 1.65.
 // (py::numpy requires NumPy 1.7 or later.)
@@ -39,6 +40,7 @@
 #include <vector>
 
 namespace py = pybind11;
+//using namespace pybind11::literals;
 
 #ifdef __clang__
 // This is a private header, so it's OK to include a "using namespace" directive.
@@ -90,8 +92,9 @@ getGridFromPyObject(const py::object& gridObj)
 #define CONVERT_GRID_TO_BASE(GridPtrType) \
     { \
         try { \
-         return py::cast<GridBase::Ptr>(gridObj); \
-        } catch (py::cast_error) {} \
+            return py::cast<GridBase::Ptr>(gridObj); \
+        } catch (py::cast_error) { \
+        } \
     }
 
     // Extract a grid pointer of one of the supported types
@@ -210,12 +213,13 @@ template<typename GridType>
 inline bool
 sharesWith(const GridType& grid, py::object other)
 {
-    auto x = py::cast<typename GridType::Ptr>(other);
-    if (x.check()) {
-        typename GridType::ConstPtr otherGrid = x();
-        return (&otherGrid->tree() == &grid.tree());
+    typename GridType::ConstPtr otherGrid;
+    try {
+        otherGrid = py::cast<typename GridType::Ptr>(other);
+    } catch (py::cast_error) {
+        return false;
     }
-    return false;
+    return (&otherGrid->tree() == &grid.tree());
 }
 
 
@@ -1547,8 +1551,10 @@ applyMap(const char* methodName, GridType& grid, py::object funcObj)
         py::object result = funcObj(*it);
 
         // Verify that the result is of type GridType::ValueType.
-        auto val = py::cast<ValueT>(result);
-        if (!val.check()) {
+        ValueT val;
+        try {
+            val = py::cast<ValueT>(result);
+        } catch (py::cast_error) {
             PyErr_Format(PyExc_TypeError,
                 "expected callable argument to %s.%s() to return %s, found %s",
                 pyutil::GridTraits<GridType>::name(),
@@ -1558,7 +1564,7 @@ applyMap(const char* methodName, GridType& grid, py::object funcObj)
             py::error_already_set();
         }
 
-        it.setValue(val());
+        it.setValue(val);
     }
 }
 
@@ -1601,8 +1607,10 @@ struct TreeCombineOp
     {
         py::object resultObj = op(a, b);
 
-        auto val = py::cast<ValueT>(resultObj);
-        if (!val.check()) {
+        ValueT val;
+        try {
+            val = py::cast<ValueT>(resultObj);
+        } catch (py::cast_error) {
             PyErr_Format(PyExc_TypeError,
                 "expected callable argument to %s.combine() to return %s, found %s",
                 pyutil::GridTraits<GridType>::name(),
@@ -1611,7 +1619,7 @@ struct TreeCombineOp
             py::error_already_set();
         }
 
-        result = val();
+        result = val;
     }
     py::object op;
 };
@@ -1836,19 +1844,20 @@ public:
     /// @throw KeyError if the key is invalid
     py::object getItem(py::object keyObj) const
     {
-        auto x = py::cast<std::string>(keyObj);
-        if (x.check()) {
-            const std::string key = x();
-            if (key == "value") return py::object(this->getValue());
-            else if (key == "active") return py::object(this->getActive());
-            else if (key == "depth") return py::object(this->getDepth());
-            else if (key == "min") return py::object(this->getBBoxMin());
-            else if (key == "max") return py::object(this->getBBoxMax());
-            else if (key == "count") return py::object(this->getVoxelCount());
+        const std::string key;
+        try {
+            key = py::cast<std::string>(keyObj);
+        } catch (py::cast_error) {
+            PyErr_SetObject(PyExc_KeyError, ("%s" % keyObj.attr("__repr__")()).ptr());
+            py::error_already_set();
+            return py::object();
         }
-        PyErr_SetObject(PyExc_KeyError, ("%s" % keyObj.attr("__repr__")()).ptr());
-        py::error_already_set();
-        return py::object();
+        if (key == "value") return py::object(this->getValue());
+        else if (key == "active") return py::object(this->getActive());
+        else if (key == "depth") return py::object(this->getDepth());
+        else if (key == "min") return py::object(this->getBBoxMin());
+        else if (key == "max") return py::object(this->getBBoxMax());
+        else if (key == "count") return py::object(this->getVoxelCount());
     }
 
     /// @brief Set the value for the given key.
@@ -1856,22 +1865,23 @@ public:
     /// @throw AttributeError if the key refers to a read-only item
     void setItem(py::object keyObj, py::object valObj)
     {
-        auto x = py::cast<std::string>(keyObj);
-        if (x.check()) {
-            const std::string key = x();
-            if (key == "value") {
-                this->setValue(py::cast<ValueT>(valObj)); return;
-            } else if (key == "active") {
-                this->setActive(py::cast<bool>(valObj)); return;
-            } else if (this->hasKey(key)) {
-                PyErr_SetObject(PyExc_AttributeError,
-                    ("can't set attribute '%s'" % keyObj.attr("__repr__")()).ptr());
-                py::error_already_set();
-            }
+        const std::string key;
+        try {
+            key = py::cast<std::string>(keyObj);
+        } catch (py::cast_error) {
+            PyErr_SetObject(PyExc_KeyError,
+                ("'%s'" % keyObj.attr("__repr__")()).ptr());
+            py::error_already_set();
         }
-        PyErr_SetObject(PyExc_KeyError,
-            ("'%s'" % keyObj.attr("__repr__")()).ptr());
-        py::error_already_set();
+        if (key == "value") {
+            this->setValue(py::cast<ValueT>(valObj)); return;
+        } else if (key == "active") {
+            this->setActive(py::cast<bool>(valObj)); return;
+        } else if (this->hasKey(key)) {
+            PyErr_SetObject(PyExc_AttributeError,
+                ("can't set attribute '%s'" % keyObj.attr("__repr__")()).ptr());
+            py::error_already_set();
+        }
     }
 
     bool operator==(const IterValueProxy& other) const
@@ -2045,8 +2055,11 @@ struct PickleSuite: public py::pickle_suite
 
         // Extract a Grid from the Python object.
         GridPtrT grid;
-        auto x = py::cast<GridPtrT>(gridObj);
-        if (x.check()) grid = x();
+        try {
+            GridPtrT grid = py::cast<GridPtrT>(gridObj);
+        } catch (py::cast_error) {
+            return;
+        }
 
         if (grid) {
             // Serialize the Grid to a string.
@@ -2074,26 +2087,28 @@ struct PickleSuite: public py::pickle_suite
     static void setstate(py::object gridObj, py::object stateObj)
     {
         GridPtrT grid;
-        {
-            auto x = py::cast<GridPtrT>(gridObj);
-            if (x.check()) grid = x();
+        try {
+            grid = py::cast<GridPtrT>(gridObj);
+        } catch (py::cast_error) {
+            return;
         }
         if (!grid) return;
 
         py::tuple state;
-        {
-            auto x = py::cast<py::tuple>(stateObj);
-            if (x.check()) state = x();
+        try {
+            state = py::cast<py::tuple>(stateObj);
+        } catch (py::cast_error) {
+            return;
         }
         bool badState = (py::len(state) != 2);
 
         if (!badState) {
             // Restore the object's __dict__.
-            auto x = py::cast<py::dict>(state[0]);
-            if (x.check()) {
+            try {
+                py::dict x = py::cast<py::dict>(state[0]);
                 py::dict d = py::cast<py::dict>(gridObj.attr("__dict__"))();
-                d.update(x());
-            } else {
+                d.update(x);
+            } catch (py::cast_error) {
                 badState = true;
             }
         }
@@ -2116,9 +2131,11 @@ struct PickleSuite: public py::pickle_suite
                 }
             }
 #else
-            auto x = py::cast<std::string>(bytesObj);
-            if (x.check()) serialized = x();
-            else badState = true;
+            try {
+                serialized = py::cast<std::string>(bytesObj);
+            } catch (py::cast_error) {
+                badState = true;
+            }
 #endif
         }
 

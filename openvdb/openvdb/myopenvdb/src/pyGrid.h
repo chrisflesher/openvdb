@@ -538,138 +538,138 @@ getIndexRange(const GridType& grid)
 ////////////////////////////////////////
 
 
-inline py::dict
-getAllMetadata(GridBase::ConstPtr grid)
-{
-    if (grid) return py::dict(static_cast<const MetaMap&>(*grid));
-    return py::dict();
-}
+// inline py::dict
+// getAllMetadata(GridBase::ConstPtr grid)
+// {
+//     if (grid) return py::dict(static_cast<const MetaMap&>(*grid));
+//     return py::dict();
+// }
 
 
-inline void
-replaceAllMetadata(GridBase::Ptr grid, const MetaMap& metadata)
-{
-    if (grid) {
-        grid->clearMetadata();
-        for (MetaMap::ConstMetaIterator it = metadata.beginMeta();
-            it != metadata.endMeta(); ++it)
-        {
-            if (it->second) grid->insertMeta(it->first, *it->second);
-        }
-    }
-}
+// inline void
+// replaceAllMetadata(GridBase::Ptr grid, const MetaMap& metadata)
+// {
+//     if (grid) {
+//         grid->clearMetadata();
+//         for (MetaMap::ConstMetaIterator it = metadata.beginMeta();
+//             it != metadata.endMeta(); ++it)
+//         {
+//             if (it->second) grid->insertMeta(it->first, *it->second);
+//         }
+//     }
+// }
 
 
-inline void
-updateMetadata(GridBase::Ptr grid, const MetaMap& metadata)
-{
-    if (grid) {
-        for (MetaMap::ConstMetaIterator it = metadata.beginMeta();
-            it != metadata.endMeta(); ++it)
-        {
-            if (it->second) {
-                grid->removeMeta(it->first);
-                grid->insertMeta(it->first, *it->second);
-            }
-        }
-    }
-}
+// inline void
+// updateMetadata(GridBase::Ptr grid, const MetaMap& metadata)
+// {
+//     if (grid) {
+//         for (MetaMap::ConstMetaIterator it = metadata.beginMeta();
+//             it != metadata.endMeta(); ++it)
+//         {
+//             if (it->second) {
+//                 grid->removeMeta(it->first);
+//                 grid->insertMeta(it->first, *it->second);
+//             }
+//         }
+//     }
+// }
 
 
-inline py::dict
-getStatsMetadata(GridBase::ConstPtr grid)
-{
-    MetaMap::ConstPtr metadata;
-    if (grid) metadata = grid->getStatsMetadata();
-    if (metadata) return py::dict(*metadata);
-    return py::dict();
-}
+// inline py::dict
+// getStatsMetadata(GridBase::ConstPtr grid)
+// {
+//     MetaMap::ConstPtr metadata;
+//     if (grid) metadata = grid->getStatsMetadata();
+//     if (metadata) return py::dict(*metadata);
+//     return py::dict();
+// }
 
 
-inline py::object
-getMetadataKeys(GridBase::ConstPtr grid)
-{
-    if (grid) {
-#if PY_MAJOR_VERSION >= 3
-        // Return an iterator over the "keys" view of a dict.
-        return py::import("builtins").attr("iter")(
-            py::dict(static_cast<const MetaMap&>(*grid)).keys());
-#else
-        return py::dict(static_cast<const MetaMap&>(*grid)).iterkeys();
-#endif
-    }
-    return py::object();
-}
+// inline py::object
+// getMetadataKeys(GridBase::ConstPtr grid)
+// {
+//     if (grid) {
+// #if PY_MAJOR_VERSION >= 3
+//         // Return an iterator over the "keys" view of a dict.
+//         return py::import("builtins").attr("iter")(
+//             py::dict(static_cast<const MetaMap&>(*grid)).keys());
+// #else
+//         return py::dict(static_cast<const MetaMap&>(*grid)).iterkeys();
+// #endif
+//     }
+//     return py::object();
+// }
 
 
-inline py::object
-getMetadata(GridBase::ConstPtr grid, py::object nameObj)
-{
-    if (!grid) return py::object();
+// inline py::object
+// getMetadata(GridBase::ConstPtr grid, py::object nameObj)
+// {
+//     if (!grid) return py::object();
 
-    const std::string name = pyutil::extractArg<std::string>(
-        nameObj, "__getitem__", nullptr, /*argIdx=*/1, "str");
+//     const std::string name = pyutil::extractArg<std::string>(
+//         nameObj, "__getitem__", nullptr, /*argIdx=*/1, "str");
 
-    Metadata::ConstPtr metadata = (*grid)[name];
-    if (!metadata) {
-        PyErr_SetString(PyExc_KeyError, name.c_str());
-        py::error_already_set();
-    }
+//     Metadata::ConstPtr metadata = (*grid)[name];
+//     if (!metadata) {
+//         PyErr_SetString(PyExc_KeyError, name.c_str());
+//         py::error_already_set();
+//     }
 
-    // Use the MetaMap-to-dict converter (see pyOpenVDBModule.cc) to convert
-    // the Metadata value to a Python object of the appropriate type.
-    /// @todo Would be more efficient to convert the Metadata object
-    /// directly to a Python object.
-    MetaMap metamap;
-    metamap.insertMeta(name, *metadata);
-    return py::dict(metamap)[name];
-}
-
-
-inline void
-setMetadata(GridBase::Ptr grid, py::object nameObj, py::object valueObj)
-{
-    if (!grid) return;
-
-    const std::string name = pyutil::extractArg<std::string>(
-        nameObj, "__setitem__", nullptr, /*argIdx=*/1, "str");
-
-    // Insert the Python object into a Python dict, then use the dict-to-MetaMap
-    // converter (see pyOpenVDBModule.cc) to convert the dict to a MetaMap
-    // containing a Metadata object of the appropriate type.
-    /// @todo Would be more efficient to convert the Python object
-    /// directly to a Metadata object.
-    py::dict dictObj;
-    dictObj[name] = valueObj;
-    MetaMap metamap = py::cast<MetaMap>(dictObj);
-
-    if (Metadata::Ptr metadata = metamap[name]) {
-        grid->removeMeta(name);
-        grid->insertMeta(name, *metadata);
-    }
-}
+//     // Use the MetaMap-to-dict converter (see pyOpenVDBModule.cc) to convert
+//     // the Metadata value to a Python object of the appropriate type.
+//     /// @todo Would be more efficient to convert the Metadata object
+//     /// directly to a Python object.
+//     MetaMap metamap;
+//     metamap.insertMeta(name, *metadata);
+//     return py::dict(metamap)[name];
+// }
 
 
-inline void
-removeMetadata(GridBase::Ptr grid, const std::string& name)
-{
-    if (grid) {
-        Metadata::Ptr metadata = (*grid)[name];
-        if (!metadata) {
-            PyErr_SetString(PyExc_KeyError, name.c_str());
-            py::error_already_set();
-        }
-        grid->removeMeta(name);
-    }
-}
+// inline void
+// setMetadata(GridBase::Ptr grid, py::object nameObj, py::object valueObj)
+// {
+//     if (!grid) return;
+
+//     const std::string name = pyutil::extractArg<std::string>(
+//         nameObj, "__setitem__", nullptr, /*argIdx=*/1, "str");
+
+//     // Insert the Python object into a Python dict, then use the dict-to-MetaMap
+//     // converter (see pyOpenVDBModule.cc) to convert the dict to a MetaMap
+//     // containing a Metadata object of the appropriate type.
+//     /// @todo Would be more efficient to convert the Python object
+//     /// directly to a Metadata object.
+//     py::dict dictObj;
+//     dictObj[name] = valueObj;
+//     MetaMap metamap = py::cast<MetaMap>(dictObj);
+
+//     if (Metadata::Ptr metadata = metamap[name]) {
+//         grid->removeMeta(name);
+//         grid->insertMeta(name, *metadata);
+//     }
+// }
 
 
-inline bool
-hasMetadata(GridBase::ConstPtr grid, const std::string& name)
-{
-    if (grid) return ((*grid)[name].get() != nullptr);
-    return false;
-}
+// inline void
+// removeMetadata(GridBase::Ptr grid, const std::string& name)
+// {
+//     if (grid) {
+//         Metadata::Ptr metadata = (*grid)[name];
+//         if (!metadata) {
+//             PyErr_SetString(PyExc_KeyError, name.c_str());
+//             py::error_already_set();
+//         }
+//         grid->removeMeta(name);
+//     }
+// }
+
+
+// inline bool
+// hasMetadata(GridBase::ConstPtr grid, const std::string& name)
+// {
+//     if (grid) return ((*grid)[name].get() != nullptr);
+//     return false;
+// }
 
 
 ////////////////////////////////////////
@@ -966,7 +966,7 @@ public:
             }
         } catch (openvdb::TypeError&) {
             PyErr_Format(PyExc_TypeError,
-                "unsupported NumPy data type %s", mArrayTypeName.c_str());
+                PyUnicode_FromFormat("unsupported NumPy data type %s", mArrayTypeName.c_str());
             py::error_already_set();
         }
     }
@@ -1848,7 +1848,7 @@ public:
         try {
             key = py::cast<std::string>(keyObj);
         } catch (py::cast_error) {
-            PyErr_SetObject(PyExc_KeyError, ("%s" % keyObj.attr("__repr__")()).ptr());
+            PyErr_SetObject(PyExc_KeyError, PyUnicode_FromFormat("%s", keyObj.attr("__repr__")()));
             py::error_already_set();
             return py::object();
         }
@@ -1870,7 +1870,7 @@ public:
             key = py::cast<std::string>(keyObj);
         } catch (py::cast_error) {
             PyErr_SetObject(PyExc_KeyError,
-                ("'%s'" % keyObj.attr("__repr__")()).ptr());
+                PyUnicode_FromFormat("'%s'", keyObj.attr("__repr__")()));
             py::error_already_set();
         }
         if (key == "value") {
@@ -1879,7 +1879,7 @@ public:
             this->setActive(py::cast<bool>(valObj)); return;
         } else if (this->hasKey(key)) {
             PyErr_SetObject(PyExc_AttributeError,
-                ("can't set attribute '%s'" % keyObj.attr("__repr__")()).ptr());
+                PyUnicode_FromFormat("can't set attribute '%s'", keyObj.attr("__repr__")()));
             py::error_already_set();
         }
     }
@@ -1904,7 +1904,7 @@ public:
             py::str
                 key(this->keys()[i]),
                 val(this->getItem(key).attr("__repr__")());
-            valuesAsStrings.append("'%s': %s" % py::make_tuple(key, val));
+            valuesAsStrings.append(PyUnicode_FromFormat("'%s': %s", key, val));
         }
         // print ", ".join(valuesAsStrings)
         py::object joined = py::str(", ").attr("join")(valuesAsStrings);
@@ -1972,7 +1972,7 @@ public:
         py::class_<IterWrap>(
             iterClassName.c_str(),
             /*docstring=*/Traits::descr().c_str(),
-            /*ctor=*/py::no_init) // can only be instantiated from C++, not from Python
+            /*ctor=*/py::init) // TODO: this should only be instantiated from C++, not from Python
 
             .add_property("parent", &IterWrap::parent,
                 ("the " + gridClassName + " over which to iterate").c_str())
@@ -1984,7 +1984,7 @@ public:
         py::class_<IterValueProxyT>(
             valueClassName.c_str(),
             /*docstring=*/("Proxy for a tile or voxel value in a " + gridClassName).c_str(),
-            /*ctor=*/py::no_init) // can only be instantiated from C++, not from Python
+            /*ctor=*/py::init) // TODO: this should only be instantiated from C++, not from Python
 
             .def("copy", &IterValueProxyT::copy,
                 ("copy() -> " + valueClassName + "\n\n"
@@ -2040,132 +2040,128 @@ private:
 ////////////////////////////////////////
 
 
-template<typename GridT>
-struct PickleSuite: public py::pickle_suite
-{
-    using GridPtrT = typename GridT::Ptr;
+// template<typename GridT>
+// struct PickleSuite: public py::pickle_suite
+// {
+//     using GridPtrT = typename GridT::Ptr;
 
-    /// Return @c true, indicating that this pickler preserves a Grid's __dict__.
-    static bool getstate_manages_dict() { return true; }
+//     /// Return @c true, indicating that this pickler preserves a Grid's __dict__.
+//     static bool getstate_manages_dict() { return true; }
 
-    /// Return a tuple representing the state of the given Grid.
-    static py::tuple getstate(py::object gridObj)
-    {
-        py::tuple state;
+//     /// Return a tuple representing the state of the given Grid.
+//     static py::tuple getstate(py::object gridObj)
+//     {
+//         py::tuple state;
 
-        // Extract a Grid from the Python object.
-        GridPtrT grid;
-        try {
-            GridPtrT grid = py::cast<GridPtrT>(gridObj);
-        } catch (py::cast_error) {
-            return;
-        }
+//         // Extract a Grid from the Python object.
+//         GridPtrT grid;
+//         try {
+//             GridPtrT grid = py::cast<GridPtrT>(gridObj);
+//         } catch (py::cast_error) {
+//             return;
+//         }
 
-        if (grid) {
-            // Serialize the Grid to a string.
-            std::ostringstream ostr(std::ios_base::binary);
-            {
-                openvdb::io::Stream strm(ostr);
-                strm.setGridStatsMetadataEnabled(false);
-                strm.write(openvdb::GridPtrVec(1, grid));
-            }
-            // Construct a state tuple comprising the Python object's __dict__
-            // and the serialized Grid.
-#if PY_MAJOR_VERSION >= 3
-            // Convert the byte string to a "bytes" sequence.
-            const std::string s = ostr.str();
-            py::object bytesObj = pyutil::pyBorrow(PyBytes_FromStringAndSize(s.data(), s.size()));
-#else
-            py::str bytesObj(ostr.str());
-#endif
-            state = py::make_tuple(gridObj.attr("__dict__"), bytesObj);
-        }
-        return state;
-    }
+//         if (grid) {
+//             // Serialize the Grid to a string.
+//             std::ostringstream ostr(std::ios_base::binary);
+//             {
+//                 openvdb::io::Stream strm(ostr);
+//                 strm.setGridStatsMetadataEnabled(false);
+//                 strm.write(openvdb::GridPtrVec(1, grid));
+//             }
+//             // Construct a state tuple comprising the Python object's __dict__
+//             // and the serialized Grid.
+// #if PY_MAJOR_VERSION >= 3
+//             // Convert the byte string to a "bytes" sequence.
+//             const std::string s = ostr.str();
+//             py::object bytesObj = pyutil::pyBorrow(PyBytes_FromStringAndSize(s.data(), s.size()));
+// #else
+//             py::str bytesObj(ostr.str());
+// #endif
+//             state = py::make_tuple(gridObj.attr("__dict__"), bytesObj);
+//         }
+//         return state;
+//     }
 
-    /// Restore the given Grid to a saved state.
-    static void setstate(py::object gridObj, py::object stateObj)
-    {
-        GridPtrT grid;
-        try {
-            grid = py::cast<GridPtrT>(gridObj);
-        } catch (py::cast_error) {
-            return;
-        }
-        if (!grid) return;
+//     /// Restore the given Grid to a saved state.
+//     static void setstate(py::object gridObj, py::object stateObj)
+//     {
+//         GridPtrT grid;
+//         try {
+//             grid = py::cast<GridPtrT>(gridObj);
+//         } catch (py::cast_error) {
+//             return;
+//         }
+//         if (!grid) return;
 
-        py::tuple state;
-        try {
-            state = py::cast<py::tuple>(stateObj);
-        } catch (py::cast_error) {
-            return;
-        }
-        bool badState = (py::len(state) != 2);
+//         py::tuple state;
+//         try {
+//             state = py::cast<py::tuple>(stateObj);
+//         } catch (py::cast_error) {
+//             return;
+//         }
+//         bool badState = (py::len(state) != 2);
 
-        if (!badState) {
-            // Restore the object's __dict__.
-            try {
-                py::dict x = py::cast<py::dict>(state[0]);
-                py::dict d = py::cast<py::dict>(gridObj.attr("__dict__"))();
-                d.update(x);
-            } catch (py::cast_error) {
-                badState = true;
-            }
-        }
+//         if (!badState) {
+//             // Restore the object's __dict__.
+//             try {
+//                 py::dict x = py::cast<py::dict>(state[0]);
+//                 py::dict d = py::cast<py::dict>(gridObj.attr("__dict__"))();
+//                 d.update(x);
+//             } catch (py::cast_error) {
+//                 badState = true;
+//             }
+//         }
 
-        std::string serialized;
-        if (!badState) {
-            // Extract the sequence containing the serialized Grid.
-            py::object bytesObj = state[1];
-#if PY_MAJOR_VERSION >= 3
-            badState = true;
-            if (PyBytes_Check(bytesObj.ptr())) {
-                // Convert the "bytes" sequence to a byte string.
-                char* buf = nullptr;
-                Py_ssize_t length = 0;
-                if (-1 != PyBytes_AsStringAndSize(bytesObj.ptr(), &buf, &length)) {
-                    if (buf != nullptr && length > 0) {
-                        serialized.assign(buf, buf + length);
-                        badState = false;
-                    }
-                }
-            }
-#else
-            try {
-                serialized = py::cast<std::string>(bytesObj);
-            } catch (py::cast_error) {
-                badState = true;
-            }
-#endif
-        }
+//         std::string serialized;
+//         if (!badState) {
+//             // Extract the sequence containing the serialized Grid.
+//             py::object bytesObj = state[1];
+// #if PY_MAJOR_VERSION >= 3
+//             badState = true;
+//             if (PyBytes_Check(bytesObj.ptr())) {
+//                 // Convert the "bytes" sequence to a byte string.
+//                 char* buf = nullptr;
+//                 Py_ssize_t length = 0;
+//                 if (-1 != PyBytes_AsStringAndSize(bytesObj.ptr(), &buf, &length)) {
+//                     if (buf != nullptr && length > 0) {
+//                         serialized.assign(buf, buf + length);
+//                         badState = false;
+//                     }
+//                 }
+//             }
+// #else
+//             try {
+//                 serialized = py::cast<std::string>(bytesObj);
+//             } catch (py::cast_error) {
+//                 badState = true;
+//             }
+// #endif
+//         }
 
-        if (badState) {
-            PyErr_SetObject(PyExc_ValueError,
-#if PY_MAJOR_VERSION >= 3
-                ("expected (dict, bytes) tuple in call to __setstate__; found %s"
-#else
-                ("expected (dict, str) tuple in call to __setstate__; found %s"
-#endif
-                     % stateObj.attr("__repr__")()).ptr());
-            py::error_already_set();
-        }
+//         if (badState) {
+//             PyErr_SetObject(PyExc_ValueError,
+//                 PyUnicode_FromFormat("expected (dict, bytes) tuple in call to __setstate__; found %s",
+//                     stateObj.attr("__repr__")()));
+//             py::error_already_set();
+//         }
 
-        // Restore the internal state of the C++ object.
-        GridPtrVecPtr grids;
-        {
-            std::istringstream istr(serialized, std::ios_base::binary);
-            io::Stream strm(istr);
-            grids = strm.getGrids(); // (note: file-level metadata is ignored)
-        }
-        if (grids && !grids->empty()) {
-            if (GridPtrT savedGrid = gridPtrCast<GridT>((*grids)[0])) {
-                grid->MetaMap::operator=(*savedGrid); ///< @todo add a Grid::setMetadata() method?
-                grid->setTransform(savedGrid->transformPtr());
-                grid->setTree(savedGrid->treePtr());
-            }
-        }
-    }
-}; // struct PickleSuite
+//         // Restore the internal state of the C++ object.
+//         GridPtrVecPtr grids;
+//         {
+//             std::istringstream istr(serialized, std::ios_base::binary);
+//             io::Stream strm(istr);
+//             grids = strm.getGrids(); // (note: file-level metadata is ignored)
+//         }
+//         if (grids && !grids->empty()) {
+//             if (GridPtrT savedGrid = gridPtrCast<GridT>((*grids)[0])) {
+//                 grid->MetaMap::operator=(*savedGrid); ///< @todo add a Grid::setMetadata() method?
+//                 grid->setTransform(savedGrid->transformPtr());
+//                 grid->setTree(savedGrid->treePtr());
+//             }
+//         }
+//     }
+// }; // struct PickleSuite
 
 
 ////////////////////////////////////////
@@ -2214,7 +2210,7 @@ exportGrid()
                 ("deepCopy() -> " + pyGridTypeName + "\n\n"
                 "Return a deep copy of this grid.\n").c_str())
 
-            .def_pickle(pyGrid::PickleSuite<GridType>())
+            // .def_pickle(pyGrid::PickleSuite<GridType>())
 
             .def("sharesWith", &pyGrid::sharesWith<GridType>,
                 ("sharesWith(" + pyGridTypeName + ") -> bool\n\n"
@@ -2260,51 +2256,51 @@ exportGrid()
             //
             // Metadata
             //
-            .add_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
-                "dict of this grid's metadata\n\n"
-                "Setting this attribute replaces all of this grid's metadata,\n"
-                "but mutating it in place has no effect on the grid, since\n"
-                "the value of this attribute is a only a copy of the metadata.\n"
-                "Use either indexing or updateMetadata() to mutate metadata in place.")
-            .def("updateMetadata", &pyGrid::updateMetadata,
-                "updateMetadata(dict)\n\n"
-                "Add metadata to this grid, replacing any existing items\n"
-                "having the same names as the new items.")
+            // .add_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
+            //     "dict of this grid's metadata\n\n"
+            //     "Setting this attribute replaces all of this grid's metadata,\n"
+            //     "but mutating it in place has no effect on the grid, since\n"
+            //     "the value of this attribute is a only a copy of the metadata.\n"
+            //     "Use either indexing or updateMetadata() to mutate metadata in place.")
+            // .def("updateMetadata", &pyGrid::updateMetadata,
+            //     "updateMetadata(dict)\n\n"
+            //     "Add metadata to this grid, replacing any existing items\n"
+            //     "having the same names as the new items.")
 
-            .def("addStatsMetadata", &GridType::addStatsMetadata,
-                "addStatsMetadata()\n\n"
-                "Add metadata to this grid comprising the current values\n"
-                "of statistics like the active voxel count and bounding box.\n"
-                "(This metadata is not automatically kept up-to-date with\n"
-                "changes to this grid.)")
-            .def("getStatsMetadata", &pyGrid::getStatsMetadata,
-                "getStatsMetadata() -> dict\n\n"
-                "Return a (possibly empty) dict containing just the metadata\n"
-                "that was added to this grid with addStatsMetadata().")
+            // .def("addStatsMetadata", &GridType::addStatsMetadata,
+            //     "addStatsMetadata()\n\n"
+            //     "Add metadata to this grid comprising the current values\n"
+            //     "of statistics like the active voxel count and bounding box.\n"
+            //     "(This metadata is not automatically kept up-to-date with\n"
+            //     "changes to this grid.)")
+            // .def("getStatsMetadata", &pyGrid::getStatsMetadata,
+            //     "getStatsMetadata() -> dict\n\n"
+            //     "Return a (possibly empty) dict containing just the metadata\n"
+            //     "that was added to this grid with addStatsMetadata().")
 
-            .def("__getitem__", &pyGrid::getMetadata,
-                "__getitem__(name) -> value\n\n"
-                "Return the metadata value associated with the given name.")
-            .def("__setitem__", &pyGrid::setMetadata,
-                "__setitem__(name, value)\n\n"
-                "Add metadata to this grid, replacing any existing item having\n"
-                "the same name as the new item.")
-            .def("__delitem__", &pyGrid::removeMetadata,
-                "__delitem__(name)\n\n"
-                "Remove the metadata with the given name.")
-            .def("__contains__", &pyGrid::hasMetadata,
-                "__contains__(name) -> bool\n\n"
-                "Return True if this grid contains metadata with the given name.")
-            .def("__iter__", &pyGrid::getMetadataKeys,
-                "__iter__() -> iterator\n\n"
-                "Return an iterator over this grid's metadata keys.")
-            .def("iterkeys", &pyGrid::getMetadataKeys,
-                "iterkeys() -> iterator\n\n"
-                "Return an iterator over this grid's metadata keys.")
+            // .def("__getitem__", &pyGrid::getMetadata,
+            //     "__getitem__(name) -> value\n\n"
+            //     "Return the metadata value associated with the given name.")
+            // .def("__setitem__", &pyGrid::setMetadata,
+            //     "__setitem__(name, value)\n\n"
+            //     "Add metadata to this grid, replacing any existing item having\n"
+            //     "the same name as the new item.")
+            // .def("__delitem__", &pyGrid::removeMetadata,
+            //     "__delitem__(name)\n\n"
+            //     "Remove the metadata with the given name.")
+            // .def("__contains__", &pyGrid::hasMetadata,
+            //     "__contains__(name) -> bool\n\n"
+            //     "Return True if this grid contains metadata with the given name.")
+            // .def("__iter__", &pyGrid::getMetadataKeys,
+            //     "__iter__() -> iterator\n\n"
+            //     "Return an iterator over this grid's metadata keys.")
+            // .def("iterkeys", &pyGrid::getMetadataKeys,
+            //     "iterkeys() -> iterator\n\n"
+            //     "Return an iterator over this grid's metadata keys.")
 
-            .add_property("saveFloatAsHalf",
-                &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,
-                "if True, write floating-point voxel values as 16-bit half floats")
+            // .add_property("saveFloatAsHalf",
+            //     &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,
+            //     "if True, write floating-point voxel values as 16-bit half floats")
 
             //
             // Statistics

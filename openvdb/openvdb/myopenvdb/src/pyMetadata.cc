@@ -37,12 +37,12 @@ void (MetadataWrap::*copy1)(const Metadata&) = &MetadataWrap::copy;
 } // end anonymous namespace
 
 
-void exportMetadata();
+void exportMetadata(py::module_ &m);
 
 void
-exportMetadata()
+exportMetadata(py::module_ &m)
 {
-    py::class_<MetadataWrap, boost::noncopyable> clss(
+    py::class_<MetadataWrap, boost::noncopyable> clss(m,
         /*classname=*/"Metadata",
         /*docstring=*/
             "Class that holds the value of a single item of metadata of a type\n"

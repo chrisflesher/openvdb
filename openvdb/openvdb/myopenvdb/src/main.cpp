@@ -1,17 +1,16 @@
 #include <pybind11/pybind11.h>
-#include "pyGrid.h"
+
+namespace py = pybind11;
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 
-void exportFloatGrid();
+void exportFloatGrid(py::module_);
 
 int add(int i, int j) {
     return i + j;
 }
-
-namespace py = pybind11;
 
 PYBIND11_MODULE(_core, m) {
     m.doc() = R"pbdoc(
@@ -27,7 +26,7 @@ PYBIND11_MODULE(_core, m) {
            subtract
     )pbdoc";
 
-    exportFloatGrid();
+    exportFloatGrid(m);
 
     m.def("add", &add, R"pbdoc(
         Add two numbers

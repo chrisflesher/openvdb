@@ -8,15 +8,15 @@
 #include "pyGrid.h"
 
 
-void exportFloatGrid();
+void exportFloatGrid(py::module_ &m);
 
 
 /// Create a Python wrapper for each supported Grid type.
 void
-exportFloatGrid()
+exportFloatGrid(py::module_ &m)
 {
     // Add a module-level list that gives the types of all supported Grid classes.
-    py::scope().attr("GridTypes") = py::list();
+    m.attr("GridTypes") = py::list();
 
 #if defined(PY_OPENVDB_USE_NUMPY) && !defined(PY_OPENVDB_USE_BOOST_PYTHON_NUMPY)
     // Specify that py::numeric::array should refer to the Python type numpy.ndarray
@@ -24,12 +24,12 @@ exportFloatGrid()
     py::numeric::array::set_module_and_type("numpy", "ndarray");
 #endif
 
-    pyGrid::exportGrid<FloatGrid>();
+    pyGrid::exportGrid<FloatGrid>(m);
 #ifdef PY_OPENVDB_WRAP_ALL_GRID_TYPES
-    pyGrid::exportGrid<DoubleGrid>();
+    pyGrid::exportGrid<DoubleGrid>(m);
 #endif
 
-    py::def("createLevelSetSphere",
+    m.def("createLevelSetSphere",
         &pyGrid::createLevelSetSphere<FloatGrid>,
         (py::arg("radius"), py::arg("center")=openvdb::Coord(), py::arg("voxelSize")=1.0,
              py::arg("halfWidth")=openvdb::LEVEL_SET_HALF_WIDTH),

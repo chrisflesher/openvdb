@@ -2170,7 +2170,7 @@ private:
 /// Create a Python wrapper for a particular template instantiation of Grid.
 template<typename GridType>
 inline void
-exportGrid()
+exportGrid(py::module_ &m)
 {
     using ValueT = typename GridType::ValueType;
     using GridPtr = typename GridType::Ptr;
@@ -2191,13 +2191,11 @@ exportGrid()
 
     // Define the Grid wrapper class and make it the current scope.
     {
-        py::class_<GridType, /*HeldType=*/GridPtr> clss(
+        py::class_<GridType, /*HeldType=*/GridPtr> clss(m,
             /*classname=*/pyGridTypeName.c_str(),
             /*docstring=*/(Traits::descr()).c_str(),
             /*ctor=*/py::init<>(defaultCtorDescr.c_str())
         );
-
-        py::scope gridClassScope = clss;
 
         clss.def(py::init<const ValueT&>(py::args("background"),
                 "Initialize with the given background value."))
@@ -2557,8 +2555,8 @@ exportGrid()
     } // gridClassScope
 
     // Add the Python type object for this grid type to the module-level list.
-    py::cast<py::list>(py::scope().attr("GridTypes"))().append(
-        py::scope().attr(pyGridTypeName.c_str()));
+    py::cast<py::list>(m.attr("GridTypes"))().append(
+        m.attr(pyGridTypeName.c_str()));
 }
 
 } // namespace pyGrid

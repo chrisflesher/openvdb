@@ -7,15 +7,15 @@
 #include "pyGrid.h"
 
 
-void exportVec3Grid();
+void exportVec3Grid(py::module_ &m);
 
 
 void
-exportVec3Grid()
+exportVec3Grid(py::module_ &m)
 {
-    pyGrid::exportGrid<Vec3SGrid>();
+    pyGrid::exportGrid<Vec3SGrid>(m);
 #ifdef PY_OPENVDB_WRAP_ALL_GRID_TYPES
-    pyGrid::exportGrid<Vec3IGrid>();
-    pyGrid::exportGrid<Vec3DGrid>();
+    pyGrid::exportGrid<Vec3IGrid>(m);
+    pyGrid::exportGrid<Vec3DGrid>(m);
 #endif
 }

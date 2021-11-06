@@ -7,13 +7,13 @@
 #include "pyGrid.h"
 
 
-void exportPointGrid();
+void exportPointGrid(py::module_ &m);
 
 
 void
-exportPointGrid()
+exportPointGrid(py::module_ &m)
 {
 #ifdef PY_OPENVDB_WRAP_ALL_GRID_TYPES
-    pyGrid::exportGrid<points::PointDataGrid>();
+    pyGrid::exportGrid<points::PointDataGrid>(m);
 #endif
 }

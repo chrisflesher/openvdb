@@ -220,17 +220,17 @@ struct PickleSuite: public py::pickle_suite
 } // namespace pyTransform
 
 
-void exportTransform();
+void exportTransform(py::module_ &m);
 
 void
-exportTransform()
+exportTransform(py::module_ &m)
 {
     py::enum_<math::Axis>("Axis")
         .value("X", math::X_AXIS)
         .value("Y", math::Y_AXIS)
         .value("Z", math::Z_AXIS);
 
-    py::class_<math::Transform>("Transform", py::init<>())
+    py::class_<math::Transform>(m, "Transform", py::init<>())
 
         .def("deepCopy", &math::Transform::copy,
             "deepCopy() -> Transform\n\n"

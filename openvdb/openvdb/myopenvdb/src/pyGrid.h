@@ -1974,7 +1974,7 @@ public:
             /*docstring=*/Traits::descr().c_str(),
             /*ctor=*/py::init) // TODO: this should only be instantiated from C++, not from Python
 
-            .add_property("parent", &IterWrap::parent,
+            .def_property("parent", &IterWrap::parent,
                 ("the " + gridClassName + " over which to iterate").c_str())
 
             .def("next", &IterWrap::next, ("next() -> " + valueClassName).c_str())
@@ -1991,7 +1991,7 @@ public:
                 "Return a shallow copy of this value, i.e., one that shares\n"
                 "its data with the original.").c_str())
 
-            .add_property("parent", &IterValueProxyT::parent,
+            .def_property("parent", &IterValueProxyT::parent,
                 ("the " + gridClassName + " to which this value belongs").c_str())
 
             .def("__str__", &IterValueProxyT::info)
@@ -2000,27 +2000,25 @@ public:
             .def("__eq__", &IterValueProxyT::operator==)
             .def("__ne__", &IterValueProxyT::operator!=)
 
-            .add_property("value", &IterValueProxyT::getValue, &IterValueProxyT::setValue,
+            .def_property("value", &IterValueProxyT::getValue, &IterValueProxyT::setValue,
                 "value of this tile or voxel")
-            .add_property("active", &IterValueProxyT::getActive, &IterValueProxyT::setActive,
+            .def_property("active", &IterValueProxyT::getActive, &IterValueProxyT::setActive,
                 "active state of this tile or voxel")
-            .add_property("depth", &IterValueProxyT::getDepth,
+            .def_property("depth", &IterValueProxyT::getDepth,
                 "tree depth at which this value is stored")
-            .add_property("min", &IterValueProxyT::getBBoxMin,
+            .def_property("min", &IterValueProxyT::getBBoxMin,
                 "lower bound of the axis-aligned bounding box of this tile or voxel")
-            .add_property("max", &IterValueProxyT::getBBoxMax,
+            .def_property("max", &IterValueProxyT::getBBoxMax,
                 "upper bound of the axis-aligned bounding box of this tile or voxel")
-            .add_property("count", &IterValueProxyT::getVoxelCount,
+            .def_property("count", &IterValueProxyT::getVoxelCount,
                 "number of voxels spanned by this value")
 
-            .def("keys", &IterValueProxyT::getKeys,
+            .def_static("keys", &IterValueProxyT::getKeys,
                 "keys() -> list\n\n"
                 "Return a list of keys for this tile or voxel.")
-            .staticmethod("keys")
-            .def("__contains__", &IterValueProxyT::hasKey,
+            .def_static("__contains__", &IterValueProxyT::hasKey,
                 "__contains__(key) -> bool\n\n"
                 "Return True if the given key exists.")
-            .staticmethod("__contains__")
             .def("__getitem__", &IterValueProxyT::getItem,
                 "__getitem__(key) -> value\n\n"
                 "Return the value of the item with the given key.")
@@ -2212,31 +2210,31 @@ exportGrid(py::module_ &m)
                 "Return True if this grid shares its voxel data with the given grid.").c_str())
 
             /// @todo Any way to set a docstring for a class property?
-            .add_static_property("valueTypeName", &pyGrid::getValueType<GridType>)
+            .def_property_readonly("valueTypeName", &pyGrid::getValueType<GridType>)
                 /// @todo docstring = "name of this grid's value type"
-            .add_static_property("zeroValue", &pyGrid::getZeroValue<GridType>)
+            .def_property_readonly("zeroValue", &pyGrid::getZeroValue<GridType>)
                 /// @todo docstring = "zero, as expressed in this grid's value type"
-            .add_static_property("oneValue", &pyGrid::getOneValue<GridType>)
+            .def_property_readonly("oneValue", &pyGrid::getOneValue<GridType>)
                 /// @todo docstring = "one, as expressed in this grid's value type"
             /// @todo Is Grid.typeName ever needed?
             //.add_static_property("typeName", &GridType::gridType)
                 /// @todo docstring = to "name of this grid's type"
 
-            .add_property("background",
+            .def_property("background",
                 &pyGrid::getGridBackground<GridType>, &pyGrid::setGridBackground<GridType>,
                 "value of this grid's background voxels")
-            .add_property("name", &GridType::getName, &pyGrid::setGridName,
+            .def_property("name", &GridType::getName, &pyGrid::setGridName,
                 "this grid's name")
-            .add_property("creator", &GridType::getCreator, &pyGrid::setGridCreator,
+            .def_property("creator", &GridType::getCreator, &pyGrid::setGridCreator,
                 "description of this grid's creator")
 
-            .add_property("transform", getTransform, &pyGrid::setGridTransform,
+            .def_property("transform", getTransform, &pyGrid::setGridTransform,
                 "transform associated with this grid")
 
-            .add_property("gridClass", &pyGrid::getGridClass, &pyGrid::setGridClass,
+            .def_property("gridClass", &pyGrid::getGridClass, &pyGrid::setGridClass,
                 "the class of volumetric data (level set, fog volume, etc.)\nstored in this grid")
 
-            .add_property("vectorType", &pyGrid::getVecType, &pyGrid::setVecType,
+            .def_property("vectorType", &pyGrid::getVecType, &pyGrid::setVecType,
                 "how transforms are applied to values stored in this grid")
 
             .def("getAccessor", &pyGrid::getAccessor<GridType>,
@@ -2251,7 +2249,7 @@ exportGrid(py::module_ &m)
             //
             // Metadata
             //
-            // .add_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
+            // .def_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
             //     "dict of this grid's metadata\n\n"
             //     "Setting this attribute replaces all of this grid's metadata,\n"
             //     "but mutating it in place has no effect on the grid, since\n"
@@ -2293,7 +2291,7 @@ exportGrid(py::module_ &m)
             //     "iterkeys() -> iterator\n\n"
             //     "Return an iterator over this grid's metadata keys.")
 
-            // .add_property("saveFloatAsHalf",
+            // .def_property("saveFloatAsHalf",
             //     &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,
             //     "if True, write floating-point voxel values as 16-bit half floats")
 
@@ -2322,7 +2320,7 @@ exportGrid(py::module_ &m)
                 "Return the dimensions of the axis-aligned bounding box of all\n"
                 "active voxels.")
 
-            .add_property("treeDepth", &pyGrid::treeDepth<GridType>,
+            .def_property("treeDepth", &pyGrid::treeDepth<GridType>,
                 "depth of this grid's tree from root node to leaf node")
             .def("nodeLog2Dims", &pyGrid::getNodeLog2Dims<GridType>,
                 "list of Log2Dims of the nodes of this grid's tree\n"
@@ -2411,7 +2409,7 @@ exportGrid(py::module_ &m)
                 "produces a high-polygon-count mesh that closely approximates\n"
                 "the isosurface, and 1 produces a lower-polygon-count mesh\n"
                 "with some loss of surface detail.")
-            .def("createLevelSetFromPolygons",
+            .def_static("createLevelSetFromPolygons",
                 &pyGrid::meshToLevelSet<GridType>,
                 (py::arg("points"),
                      py::arg("triangles")=py::object(),
@@ -2432,7 +2430,6 @@ exportGrid(py::module_ &m)
                 "The resulting volume will have the given transform (or the identity\n"
                 "transform if no transform is given) and a narrow band width of\n"
                 "2 x halfWidth voxels.").c_str())
-            .staticmethod("createLevelSetFromPolygons")
 
             .def("prune", &pyGrid::prune<GridType>,
                 (py::arg("tolerance")=0),

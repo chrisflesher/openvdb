@@ -2186,19 +2186,16 @@ exportGrid(py::module_ &m)
     math::Transform::Ptr (GridType::*getTransform)() = &GridType::transformPtr;
 
     const std::string pyGridTypeName = Traits::name();
-    const std::string defaultCtorDescr = "Initialize with a background value of "
-        + pyutil::str(pyGrid::getZeroValue<GridType>()) + ".";
 
     // Define the Grid wrapper class and make it the current scope.
     {
         py::class_<GridType, /*HeldType=*/GridPtr> clss(m,
             /*classname=*/pyGridTypeName.c_str(),
-            /*docstring=*/(Traits::descr()).c_str(),
-            /*ctor=*/py::init<>(defaultCtorDescr.c_str())
+            /*docstring=*/(Traits::descr()).c_str()
         );
 
-        clss.def(py::init<const ValueT&>(py::args("background"),
-                "Initialize with the given background value."))
+        clss.def(py::init<const ValueT&>(), py::arg("background")=pyGrid::getZeroValue<GridType>(),
+                "Initialize with the given background value.")
 
             .def("copy", &pyGrid::copyGrid<GridType>,
                 ("copy() -> " + pyGridTypeName + "\n\n"
@@ -2521,14 +2518,16 @@ exportGrid(py::module_ &m)
 
             ; // py::class_<Grid>
 
-        // Register the GridPtr-to-Python object converter explicitly
-        // if it is not already implicitly registered.
-        try {
-            py::object testObj{GridPtr()};
-        } catch (py::error_already_set&) {
-            PyErr_Clear();
-            py::register_ptr_to_python<GridPtr>();
-        }
+        // @todo: Not sure if this needs to be translated since pybin11 should
+        // already manage the smart pointer properly from the class_ call??
+        // // Register the GridPtr-to-Python object converter explicitly
+        // // if it is not already implicitly registered.
+        // try {
+        //     py::object testObj{GridPtr()};
+        // } catch (py::error_already_set&) {
+        //     PyErr_Clear();
+        //     py::register_ptr_to_python<GridPtr>();
+        // }
 
         py::implicitly_convertible<GridPtr, GridBase::Ptr>();
         py::implicitly_convertible<GridPtr, GridBase::ConstPtr>();
@@ -2555,8 +2554,8 @@ exportGrid(py::module_ &m)
     } // gridClassScope
 
     // Add the Python type object for this grid type to the module-level list.
-    py::cast<py::list>(m.attr("GridTypes"))().append(
-        m.attr(pyGridTypeName.c_str()));
+    py::list gridTypes = py::cast<py::list>(m.attr("GridTypes"))();
+    gridTypes.append(m.attr(pyGridTypeName.c_str()));
 }
 
 } // namespace pyGrid

@@ -217,14 +217,14 @@ public:
     }
 
     /// @brief Define a Python wrapper class for this C++ class.
-    static void wrap()
+    static void wrap(py::module_ &m)
     {
         const std::string
             pyGridTypeName = pyutil::GridTraits<GridType>::name(),
             pyValueTypeName = openvdb::typeNameAsString<typename GridType::ValueType>(),
             pyAccessorTypeName = Traits::typeName();
 
-        py::class_<AccessorWrap> clss(
+        py::class_<AccessorWrap> clss(m,
             pyAccessorTypeName.c_str(),
             (std::string(Traits::IsConst ? "Read-only" : "Read/write")
                 + " access by (i, j, k) index coordinates to the voxels\nof a "
@@ -238,7 +238,7 @@ public:
                 "clear()\n\n"
                 "Clear this accessor of all cached data.")
 
-            .add_property("parent", &AccessorWrap::parent,
+            .def_property("parent", &AccessorWrap::parent,
                 ("this accessor's parent " + pyGridTypeName).c_str())
 
             //

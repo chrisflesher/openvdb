@@ -1962,17 +1962,16 @@ public:
 
     /// @brief Define a Python wrapper class for this C++ class and another for
     /// the IterValueProxy class returned by iterators of this type.
-    static void wrap()
+    static void wrap(py::module_ &m)
     {
         const std::string
             gridClassName = pyutil::GridTraits<typename std::remove_const<GridT>::type>::name(),
             iterClassName = /*gridClassName +*/ Traits::name(),
             valueClassName = /*gridClassName +*/ "Value";
 
-        py::class_<IterWrap>(
+        py::class_<IterWrap>(m,
             iterClassName.c_str(),
-            /*docstring=*/Traits::descr().c_str(),
-            /*ctor=*/py::init) // TODO: this should only be instantiated from C++, not from Python
+            /*docstring=*/Traits::descr().c_str())
 
             .def_property("parent", &IterWrap::parent,
                 ("the " + gridClassName + " over which to iterate").c_str())
@@ -1981,10 +1980,9 @@ public:
             .def("__next__", &IterWrap::next, ("__next__() -> " + valueClassName).c_str())
             .def("__iter__", &returnSelf);
 
-        py::class_<IterValueProxyT>(
+        py::class_<IterValueProxyT>(m,
             valueClassName.c_str(),
-            /*docstring=*/("Proxy for a tile or voxel value in a " + gridClassName).c_str(),
-            /*ctor=*/py::init) // TODO: this should only be instantiated from C++, not from Python
+            /*docstring=*/("Proxy for a tile or voxel value in a " + gridClassName).c_str())
 
             .def("copy", &IterValueProxyT::copy,
                 ("copy() -> " + valueClassName + "\n\n"
@@ -2537,16 +2535,16 @@ exportGrid(py::module_ &m)
 
         // Wrap const and non-const value accessors and expose them
         // as nested classes of the Grid class.
-        pyAccessor::AccessorWrap<const GridType>::wrap();
-        pyAccessor::AccessorWrap<GridType>::wrap();
+        pyAccessor::AccessorWrap<const GridType>::wrap(m);
+        pyAccessor::AccessorWrap<GridType>::wrap(m);
 
         // Wrap tree value iterators and expose them as nested classes of the Grid class.
-        IterWrap<const GridType, ValueOnCIterT>::wrap();
-        IterWrap<const GridType, ValueOffCIterT>::wrap();
-        IterWrap<const GridType, ValueAllCIterT>::wrap();
-        IterWrap<GridType, ValueOnIterT>::wrap();
-        IterWrap<GridType, ValueOffIterT>::wrap();
-        IterWrap<GridType, ValueAllIterT>::wrap();
+        IterWrap<const GridType, ValueOnCIterT>::wrap(m);
+        IterWrap<const GridType, ValueOffCIterT>::wrap(m);
+        IterWrap<const GridType, ValueAllCIterT>::wrap(m);
+        IterWrap<GridType, ValueOnIterT>::wrap(m);
+        IterWrap<GridType, ValueOffIterT>::wrap(m);
+        IterWrap<GridType, ValueAllIterT>::wrap(m);
 
     } // gridClassScope
 

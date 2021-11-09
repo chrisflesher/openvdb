@@ -60,7 +60,7 @@ namespace pyopenvdb {
 inline py::object
 getPyObjectFromGrid(const GridBase::Ptr& grid)
 {
-    if (!grid) return py::object();
+    if (!grid) return py::none();
 
 #define CONVERT_BASE_TO_GRID(GridType, grid) \
     if (grid->isType<GridType>()) { \
@@ -140,7 +140,7 @@ getGridFromGridBase(GridBase::Ptr grid)
     } catch (openvdb::TypeError& e) {
         PyErr_SetString(PyExc_TypeError, e.what());
         py::error_already_set();
-        return py::object();
+        return pybind11::none();
     }
     return obj;
 }
@@ -598,14 +598,14 @@ getIndexRange(const GridType& grid)
 //         return py::dict(static_cast<const MetaMap&>(*grid)).iterkeys();
 // #endif
 //     }
-//     return py::object();
+//     return py::none();
 // }
 
 
 // inline py::object
 // getMetadata(GridBase::ConstPtr grid, py::object nameObj)
 // {
-//     if (!grid) return py::object();
+//     if (!grid) return py::none();
 
 //     const std::string name = pyutil::extractArg<std::string>(
 //         nameObj, "__getitem__", nullptr, /*argIdx=*/1, "str");
@@ -1013,7 +1013,7 @@ class CopyOp<GridType, /*VecSize=*/1>: public CopyOpBase<GridType>
 {
 public:
     CopyOp(bool toGrid, GridType& grid, py::object arrObj, py::object coordObj,
-        py::object tolObj = py::object(zeroVal<typename GridType::ValueType>())):
+        py::object tolObj = py::cast(zeroVal<typename GridType::ValueType>())):
         CopyOpBase<GridType>(toGrid, grid, arrObj, coordObj, tolObj)
     {
     }
@@ -1078,7 +1078,7 @@ class CopyOp<GridType, /*VecSize=*/3>: public CopyOpBase<GridType>
 {
 public:
     CopyOp(bool toGrid, GridType& grid, py::object arrObj, py::object coordObj,
-        py::object tolObj = py::object(zeroVal<typename GridType::ValueType>())):
+        py::object tolObj = py::cast(zeroVal<typename GridType::ValueType>())):
         CopyOpBase<GridType>(toGrid, grid, arrObj, coordObj, tolObj)
     {
     }
@@ -1229,7 +1229,7 @@ volumeToQuadMesh(const GridType&, py::object)
 {
     PyErr_SetString(PyExc_NotImplementedError, "this module was built without NumPy support");
     py::error_already_set();
-    return py::object();
+    return py::none();
 }
 
 template<typename GridType>
@@ -1238,7 +1238,7 @@ volumeToMesh(const GridType&, py::object, py::object)
 {
     PyErr_SetString(PyExc_NotImplementedError, "this module was built without NumPy support");
     py::error_already_set();
-    return py::object();
+    return py::none();
 }
 
 #else // if defined(PY_OPENVDB_USE_NUMPY)
@@ -1844,20 +1844,20 @@ public:
     /// @throw KeyError if the key is invalid
     py::object getItem(py::object keyObj) const
     {
-        const std::string key;
+        std::string key;
         try {
             key = py::cast<std::string>(keyObj);
         } catch (py::cast_error) {
             PyErr_SetObject(PyExc_KeyError, PyUnicode_FromFormat("%s", keyObj.attr("__repr__")()));
             py::error_already_set();
-            return py::object();
+            return py::none();
         }
-        if (key == "value") return py::object(this->getValue());
-        else if (key == "active") return py::object(this->getActive());
-        else if (key == "depth") return py::object(this->getDepth());
-        else if (key == "min") return py::object(this->getBBoxMin());
-        else if (key == "max") return py::object(this->getBBoxMax());
-        else if (key == "count") return py::object(this->getVoxelCount());
+        if (key == "value") return py::cast(this->getValue());
+        else if (key == "active") return py::cast(this->getActive());
+        else if (key == "depth") return py::cast(this->getDepth());
+        else if (key == "min") return py::cast(this->getBBoxMin());
+        else if (key == "max") return py::cast(this->getBBoxMax());
+        else if (key == "count") return py::cast(this->getVoxelCount());
     }
 
     /// @brief Set the value for the given key.
@@ -1865,7 +1865,7 @@ public:
     /// @throw AttributeError if the key refers to a read-only item
     void setItem(py::object keyObj, py::object valObj)
     {
-        const std::string key;
+        std::string key;
         try {
             key = py::cast<std::string>(keyObj);
         } catch (py::cast_error) {
@@ -1973,7 +1973,7 @@ public:
             iterClassName.c_str(),
             /*docstring=*/Traits::descr().c_str())
 
-            .def_property("parent", &IterWrap::parent,
+            .def_property_readonly("parent", &IterWrap::parent,
                 ("the " + gridClassName + " over which to iterate").c_str())
 
             .def("next", &IterWrap::next, ("next() -> " + valueClassName).c_str())
@@ -1989,7 +1989,7 @@ public:
                 "Return a shallow copy of this value, i.e., one that shares\n"
                 "its data with the original.").c_str())
 
-            .def_property("parent", &IterValueProxyT::parent,
+            .def_property_readonly("parent", &IterValueProxyT::parent,
                 ("the " + gridClassName + " to which this value belongs").c_str())
 
             .def("__str__", &IterValueProxyT::info)
@@ -2002,13 +2002,13 @@ public:
                 "value of this tile or voxel")
             .def_property("active", &IterValueProxyT::getActive, &IterValueProxyT::setActive,
                 "active state of this tile or voxel")
-            .def_property("depth", &IterValueProxyT::getDepth,
+            .def_property_readonly("depth", &IterValueProxyT::getDepth,
                 "tree depth at which this value is stored")
-            .def_property("min", &IterValueProxyT::getBBoxMin,
+            .def_property_readonly("min", &IterValueProxyT::getBBoxMin,
                 "lower bound of the axis-aligned bounding box of this tile or voxel")
-            .def_property("max", &IterValueProxyT::getBBoxMax,
+            .def_property_readonly("max", &IterValueProxyT::getBBoxMax,
                 "upper bound of the axis-aligned bounding box of this tile or voxel")
-            .def_property("count", &IterValueProxyT::getVoxelCount,
+            .def_property_readonly("count", &IterValueProxyT::getVoxelCount,
                 "number of voxels spanned by this value")
 
             .def_static("keys", &IterValueProxyT::getKeys,
@@ -2318,7 +2318,7 @@ exportGrid(py::module_ &m)
                 "Return the dimensions of the axis-aligned bounding box of all\n"
                 "active voxels.")
 
-            .def_property("treeDepth", &pyGrid::treeDepth<GridType>,
+            .def_property_readonly("treeDepth", &pyGrid::treeDepth<GridType>,
                 "depth of this grid's tree from root node to leaf node")
             .def("nodeLog2Dims", &pyGrid::getNodeLog2Dims<GridType>,
                 "list of Log2Dims of the nodes of this grid's tree\n"
@@ -2410,9 +2410,9 @@ exportGrid(py::module_ &m)
             .def_static("createLevelSetFromPolygons",
                 &pyGrid::meshToLevelSet<GridType>,
                 (py::arg("points"),
-                     py::arg("triangles")=py::object(),
-                     py::arg("quads")=py::object(),
-                     py::arg("transform")=py::object(),
+                     py::arg("triangles")=py::none(),
+                     py::arg("quads")=py::none(),
+                     py::arg("transform")=py::none(),
                      py::arg("halfWidth")=openvdb::LEVEL_SET_HALF_WIDTH),
                 ("createLevelSetFromPolygons(points, triangles=None, quads=None,\n"
                  "    transform=None, halfWidth="
@@ -2435,7 +2435,7 @@ exportGrid(py::module_ &m)
                 "Remove nodes whose values all have the same active state\n"
                 "and are equal to within a given tolerance.")
             .def("pruneInactive", &pyGrid::pruneInactive<GridType>,
-                (py::arg("value")=py::object()),
+                (py::arg("value")=py::none()),
                 "pruneInactive(value=None)\n\n"
                 "Remove nodes whose values are all inactive and replace them\n"
                 "with either background tiles or tiles of the given value\n"

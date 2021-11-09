@@ -157,7 +157,7 @@ struct StringEnum
     /// Return the number of keys as a Python int.
     py::object numItems() const
     {
-        return py::object(py::len(items()));
+        return py::cast(py::len(items()));
     }
     /// Return the value (as a Python string) for the given key.
     py::object getItem(py::object keyObj) const { return items()[keyObj]; }

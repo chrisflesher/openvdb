@@ -238,7 +238,7 @@ public:
                 "clear()\n\n"
                 "Clear this accessor of all cached data.")
 
-            .def_property("parent", &AccessorWrap::parent,
+            .def_property_readonly("parent", &AccessorWrap::parent,
                 ("this accessor's parent " + pyGridTypeName).c_str())
 
             //
@@ -283,12 +283,12 @@ public:
                 "Set the value of voxel (i, j, k), but don't change its active state.")
 
             .def("setValueOn", &AccessorWrap::setValueOn,
-                (py::arg("ijk"), py::arg("value") = py::object()),
+                (py::arg("ijk"), py::arg("value") = py::none()),
                 "setValueOn(ijk, value=None)\n\n"
                 "Mark voxel (i, j, k) as active and, if the given value\n"
                 "is not None, set the voxel's value.\n")
             .def("setValueOff", &AccessorWrap::setValueOff,
-                (py::arg("ijk"), py::arg("value") = py::object()),
+                (py::arg("ijk"), py::arg("value") = py::none()),
                 "setValueOff(ijk, value=None)\n\n"
                 "Mark voxel (i, j, k) as inactive and, if the given value\n"
                 "is not None, set the voxel's value.")

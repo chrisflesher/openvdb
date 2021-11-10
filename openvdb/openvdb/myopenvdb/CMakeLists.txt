@@ -18,17 +18,17 @@ endif()
 find_package(pybind11 CONFIG REQUIRED)
 
 set(OPENVDB_PYTHON_MODULE_SOURCE_FILES
-  pyFloatGrid.cc
-  pyIntGrid.cc
-  pyMetadata.cc
-  pyPointGrid.cc
-  pyOpenVDBModule.cc
-  pyPointGrid.cc
-  pyTransform.cc
-  pyVec3Grid.cc
+  src/main.cc
+  src/pyFloatGrid.cc
+  src/pyIntGrid.cc
+  src/pyMetadata.cc
+  src/pyPointGrid.cc
+  src/pyPointGrid.cc
+  src/pyTransform.cc
+  src/pyVec3Grid.cc
 )
 
-pybind11_add_module(_core MODULE src/main.cpp src/pyFloatGrid.cc)
+pybind11_add_module(_core MODULE ${OPENVDB_PYTHON_MODULE_SOURCE_FILES})
 
 target_compile_definitions(_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
 

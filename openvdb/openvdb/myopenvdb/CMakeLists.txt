@@ -21,7 +21,6 @@ set(OPENVDB_PYTHON_MODULE_SOURCE_FILES
   src/main.cc
   src/pyFloatGrid.cc
   src/pyIntGrid.cc
-  src/pyMetadata.cc
   src/pyPointGrid.cc
   src/pyPointGrid.cc
   src/pyTransform.cc

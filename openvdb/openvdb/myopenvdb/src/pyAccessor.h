@@ -272,23 +272,23 @@ public:
                 "isValueOn(ijk) -> bool\n\n"
                 "Return the active state of the voxel at coordinates (i, j, k).")
             .def("setActiveState", &AccessorWrap::setActiveState,
-                (py::arg("ijk"), py::arg("on")),
+                py::arg("ijk"), py::arg("on"),
                 "setActiveState(ijk, on)\n\n"
                 "Mark voxel (i, j, k) as either active or inactive (True or False),\n"
                 "but don't change its value.")
 
             .def("setValueOnly", &AccessorWrap::setValueOnly,
-                (py::arg("ijk"), py::arg("value")),
+                py::arg("ijk"), py::arg("value"),
                 "setValueOnly(ijk, value)\n\n"
                 "Set the value of voxel (i, j, k), but don't change its active state.")
 
             .def("setValueOn", &AccessorWrap::setValueOn,
-                (py::arg("ijk"), py::arg("value") = py::none()),
+                py::arg("ijk"), py::arg("value") = py::none(),
                 "setValueOn(ijk, value=None)\n\n"
                 "Mark voxel (i, j, k) as active and, if the given value\n"
                 "is not None, set the voxel's value.\n")
             .def("setValueOff", &AccessorWrap::setValueOff,
-                (py::arg("ijk"), py::arg("value") = py::none()),
+                py::arg("ijk"), py::arg("value") = py::none(),
                 "setValueOff(ijk, value=None)\n\n"
                 "Mark voxel (i, j, k) as inactive and, if the given value\n"
                 "is not None, set the voxel's value.")

@@ -249,7 +249,7 @@ exportTransform(py::module_ &m)
             "True if this transform is linear")
 
         .def("rotate", &math::Transform::preRotate,
-            (py::arg("radians"), py::arg("axis") = math::X_AXIS),
+            py::arg("radians"), py::arg("axis") = math::X_AXIS,
             "rotate(radians, axis)\n\n"
             "Accumulate a rotation about either Axis.X, Axis.Y or Axis.Z.")
         .def("translate", &math::Transform::postTranslate, py::arg("xyz"),
@@ -262,7 +262,7 @@ exportTransform(py::module_ &m)
             "scale((sx, sy, sz))\n\n"
             "Accumulate a nonuniform scale.")
         .def("shear", &math::Transform::preShear,
-            (py::arg("s"), py::arg("axis0"), py::arg("axis1")),
+            py::arg("s"), py::arg("axis0"), py::arg("axis1"),
             "shear(s, axis0, axis1)\n\n"
             "Accumulate a shear (axis0 and axis1 are either\n"
             "Axis.X, Axis.Y or Axis.Z).")
@@ -310,13 +310,13 @@ exportTransform(py::module_ &m)
         "where [m, n, o, p] is the translation component.");
 
     py::def("createLinearTransform", &pyTransform::createLinearFromDim,
-        (py::arg("voxelSize") = 1.0),
+        py::arg("voxelSize") = 1.0,
         "createLinearTransform(voxelSize) -> Transform\n\n"
         "Create a new linear transform with the given uniform voxel size.");
 
     py::def("createFrustumTransform", &pyTransform::createFrustum,
-        (py::arg("xyzMin"), py::arg("xyzMax"),
-         py::arg("taper"), py::arg("depth"), py::arg("voxelSize") = 1.0),
+        py::arg("xyzMin"), py::arg("xyzMax"),
+         py::arg("taper"), py::arg("depth"), py::arg("voxelSize") = 1.0,
         "createFrustumTransform(xyzMin, xyzMax, taper, depth, voxelSize) -> Transform\n\n"
         "Create a new frustum transform with unit bounding box (xyzMin, xyzMax)\n"
         "and the given taper, depth and uniform voxel size.");

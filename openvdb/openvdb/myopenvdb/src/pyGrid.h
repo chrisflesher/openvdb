@@ -2362,7 +2362,7 @@ exportGrid(py::module_ &m)
             // Tools
             //
             .def("fill", &pyGrid::fill<GridType>,
-                (py::arg("min"), py::arg("max"), py::arg("value"), py::arg("active")=true),
+                py::arg("min"), py::arg("max"), py::arg("value"), py::arg("active")=true,
                 "fill(min, max, value, active=True)\n\n"
                 "Set all voxels within a given axis-aligned box to\n"
                 "a constant value (either active or inactive).")
@@ -2372,8 +2372,8 @@ exportGrid(py::module_ &m)
                 "voxels and tiles.")
 
             .def("copyFromArray", &pyGrid::copyFromArray<GridType>,
-                (py::arg("array"), py::arg("ijk")=Coord(0),
-                     py::arg("tolerance")=pyGrid::getZeroValue<GridType>()),
+                py::arg("array"), py::arg("ijk")=Coord(0),
+                     py::arg("tolerance")=pyGrid::getZeroValue<GridType>(),
                 ("copyFromArray(array, ijk=(0, 0, 0), tolerance=0)\n\n"
                 "Populate this grid, starting at voxel (i, j, k), with values\nfrom a "
                 + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
@@ -2381,7 +2381,7 @@ exportGrid(py::module_ &m)
                 "if and only if their values are equal to this grid's\n"
                 "background value within the given tolerance.").c_str())
             .def("copyToArray", &pyGrid::copyToArray<GridType>,
-                (py::arg("array"), py::arg("ijk")=Coord(0)),
+                py::arg("array"), py::arg("ijk")=Coord(0),
                 ("copyToArray(array, ijk=(0, 0, 0))\n\nPopulate a "
                 + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
                 + "-dimensional array with values\n"
@@ -2389,7 +2389,7 @@ exportGrid(py::module_ &m)
 
             .def("convertToQuads",
                 &pyGrid::volumeToQuadMesh<GridType>,
-                (py::arg("isovalue")=0),
+                py::arg("isovalue")=0,
                 "convertToQuads(isovalue=0) -> points, quads\n\n"
                 "Uniformly mesh a scalar grid that has a continuous isosurface\n"
                 "at the given isovalue.  Return a NumPy array of world-space\n"
@@ -2397,7 +2397,7 @@ exportGrid(py::module_ &m)
                 "specify the vertices of the quadrilaterals that form the mesh.")
             .def("convertToPolygons",
                 &pyGrid::volumeToMesh<GridType>,
-                (py::arg("isovalue")=0, py::arg("adaptivity")=0),
+                py::arg("isovalue")=0, py::arg("adaptivity")=0,
                 "convertToPolygons(isovalue=0, adaptivity=0) -> points, triangles, quads\n\n"
                 "Adaptively mesh a scalar grid that has a continuous isosurface\n"
                 "at the given isovalue.  Return a NumPy array of world-space\n"
@@ -2409,11 +2409,11 @@ exportGrid(py::module_ &m)
                 "with some loss of surface detail.")
             .def_static("createLevelSetFromPolygons",
                 &pyGrid::meshToLevelSet<GridType>,
-                (py::arg("points"),
-                     py::arg("triangles")=py::none(),
-                     py::arg("quads")=py::none(),
-                     py::arg("transform")=py::none(),
-                     py::arg("halfWidth")=openvdb::LEVEL_SET_HALF_WIDTH),
+                py::arg("points"),
+                    py::arg("triangles")=py::none(),
+                    py::arg("quads")=py::none(),
+                    py::arg("transform")=py::none(),
+                    py::arg("halfWidth")=openvdb::LEVEL_SET_HALF_WIDTH,
                 ("createLevelSetFromPolygons(points, triangles=None, quads=None,\n"
                  "    transform=None, halfWidth="
                  + std::to_string(openvdb::LEVEL_SET_HALF_WIDTH) + ") -> "
@@ -2430,12 +2430,12 @@ exportGrid(py::module_ &m)
                 "2 x halfWidth voxels.").c_str())
 
             .def("prune", &pyGrid::prune<GridType>,
-                (py::arg("tolerance")=0),
+                py::arg("tolerance")=0,
                 "prune(tolerance=0)\n\n"
                 "Remove nodes whose values all have the same active state\n"
                 "and are equal to within a given tolerance.")
             .def("pruneInactive", &pyGrid::pruneInactive<GridType>,
-                (py::arg("value")=py::none()),
+                py::arg("value")=py::none(),
                 "pruneInactive(value=None)\n\n"
                 "Remove nodes whose values are all inactive and replace them\n"
                 "with either background tiles or tiles of the given value\n"
@@ -2480,7 +2480,7 @@ exportGrid(py::module_ &m)
                 "Example: grid.mapAll(lambda x: x * 2 if x < 0.5 else x)")
 
             .def("combine", &pyGrid::combine<GridType>,
-                (py::arg("grid"), py::arg("function")),
+                py::arg("grid"), py::arg("function"),
                 "combine(grid, function)\n\n"
                 "Compute function(self, other) over all corresponding pairs\n"
                 "of values (tile or voxel) of this grid and the other grid\n"

@@ -1858,6 +1858,7 @@ public:
         else if (key == "min") return py::cast(this->getBBoxMin());
         else if (key == "max") return py::cast(this->getBBoxMax());
         else if (key == "count") return py::cast(this->getVoxelCount());
+        return py::none();
     }
 
     /// @brief Set the value for the given key.

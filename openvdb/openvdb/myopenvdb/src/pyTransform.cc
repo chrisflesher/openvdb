@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
 #include "openvdb/openvdb.h"
 #include "pyutil.h"
 
@@ -56,12 +57,12 @@ createLinearFromMat(py::object obj)
     if (is4x4Seq) {
         for (int row = 0; is4x4Seq && row < 4; ++row) {
             // Verify that each element of obj is itself a four-element sequence.
-            py::object rowObj = obj[row];
+            py::object rowObj = obj[py::int_(row)];
             if (PySequence_Check(rowObj.ptr()) && PySequence_Length(rowObj.ptr()) == 4) {
                 // Extract four numeric values from this row of the sequence.
                 for (int col = 0; is4x4Seq && col < 4; ++col) {
                     try {
-                        m[row][col] = py::cast<double>(rowObj[col]);
+                        m[row][col] = py::cast<double>(rowObj[py::int_(col)]);
                     }
                     catch (py::cast_error) {
                         is4x4Seq = false;
@@ -159,7 +160,9 @@ createFrustum(const Coord& xyzMin, const Coord& xyzMax,
             try {
                 py::dict x = py::cast<py::dict>(state[int(STATE_DICT)]);
                 py::dict d = py::cast<py::dict>(xformObj.attr("__dict__"))();
-                d.update(x());
+                for (auto item : x) {
+                    d[item.first] = item.second;
+                }
             }
             catch (py::cast_error) {
                 badState = true;
@@ -213,15 +216,11 @@ createFrustum(const Coord& xyzMin, const Coord& xyzMax,
         }
 
         if (badState) {
-            PyErr_SetObject(PyExc_ValueError,
 #if PY_MAJOR_VERSION >= 3
-                "expected (dict, int, int, int, bytes) tuple in call to __setstate__; found %s",
+            throw py::value_error("expected (dict, int, int, int, bytes) tuple in call to __setstate__");
 #else
-                "expected (dict, int, int, int, str) tuple in call to __setstate__; found %s",
+            throw py::value_error("expected (dict, int, int, int, str) tuple in call to __setstate__");
 #endif
-                    stateObj.attr("__repr__")().ptr());
-
-            py::error_already_set();
         }
 
         // Restore the internal state of the C++ object.
@@ -238,7 +237,7 @@ void exportTransform(py::module_ &m);
 void
 exportTransform(py::module_ &m)
 {
-    py::enum_<math::Axis>("Axis")
+    py::enum_<math::Axis>(m, "Axis")
         .value("X", math::X_AXIS)
         .value("Y", math::Y_AXIS)
         .value("Z", math::Z_AXIS);

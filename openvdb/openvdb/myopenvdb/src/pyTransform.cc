@@ -60,9 +60,10 @@ createLinearFromMat(py::object obj)
             if (PySequence_Check(rowObj.ptr()) && PySequence_Length(rowObj.ptr()) == 4) {
                 // Extract four numeric values from this row of the sequence.
                 for (int col = 0; is4x4Seq && col < 4; ++col) {
-                    if (py::extract<double>(rowObj[col]).check()) {
-                        m[row][col] = py::extract<double>(rowObj[col]);
-                    } else {
+                    try {
+                        m[row][col] = py::cast<double>(rowObj[col]);
+                    }
+                    catch (py::cast_error) {
                         is4x4Seq = false;
                     }
                 }
@@ -73,7 +74,7 @@ createLinearFromMat(py::object obj)
     }
     if (!is4x4Seq) {
         PyErr_Format(PyExc_ValueError, "expected a 4 x 4 sequence of numeric values");
-        py::throw_error_already_set();
+        py::error_already_set();
     }
 
     return math::Transform::createLinearTransform(m);
@@ -92,8 +93,7 @@ createFrustum(const Coord& xyzMin, const Coord& xyzMax,
 ////////////////////////////////////////
 
 
-struct PickleSuite: public py::pickle_suite
-{
+
     enum { STATE_DICT = 0, STATE_MAJOR, STATE_MINOR, STATE_FORMAT, STATE_XFORM };
 
     /// Return @c true, indicating that this pickler preserves a Transform's __dict__.
@@ -102,33 +102,33 @@ struct PickleSuite: public py::pickle_suite
     /// Return a tuple representing the state of the given Transform.
     static py::tuple getstate(py::object xformObj)
     {
-        py::tuple state;
-        py::extract<math::Transform> x(xformObj);
-        if (x.check()) {
-            // Extract a Transform from the Python object.
-            math::Transform xform = x();
-            std::ostringstream ostr(std::ios_base::binary);
-            // Serialize the Transform to a string.
-            xform.write(ostr);
-
-            // Construct a state tuple comprising the Python object's __dict__,
-            // the version numbers of the serialization format,
-            // and the serialized Transform.
-#if PY_MAJOR_VERSION >= 3
-            // Convert the byte string to a "bytes" sequence.
-            const std::string s = ostr.str();
-            py::object bytesObj = pyutil::pyBorrow(PyBytes_FromStringAndSize(s.data(), s.size()));
-#else
-            py::str bytesObj(ostr.str());
-#endif
-            state = py::make_tuple(
-                xformObj.attr("__dict__"),
-                uint32_t(OPENVDB_LIBRARY_MAJOR_VERSION),
-                uint32_t(OPENVDB_LIBRARY_MINOR_VERSION),
-                uint32_t(OPENVDB_FILE_VERSION),
-                bytesObj);
+        // Extract a Transform from the Python object.
+        math::Transform xform;
+        try {
+            xform = py::cast<math::Transform>(xformObj);
+        } catch (py::cast_error) {
+            return py::tuple();
         }
-        return state;
+        std::ostringstream ostr(std::ios_base::binary);
+        // Serialize the Transform to a string.
+        xform.write(ostr);
+
+        // Construct a state tuple comprising the Python object's __dict__,
+        // the version numbers of the serialization format,
+        // and the serialized Transform.
+#if PY_MAJOR_VERSION >= 3
+        // Convert the byte string to a "bytes" sequence.
+        const std::string s = ostr.str();
+        py::object bytesObj = pyutil::pyBorrow(PyBytes_FromStringAndSize(s.data(), s.size()));
+#else
+        py::str bytesObj(ostr.str());
+#endif
+        return py::make_tuple(
+            xformObj.attr("__dict__"),
+            uint32_t(OPENVDB_LIBRARY_MAJOR_VERSION),
+            uint32_t(OPENVDB_LIBRARY_MINOR_VERSION),
+            uint32_t(OPENVDB_FILE_VERSION),
+            bytesObj);
     }
 
     /// Restore the given Transform to a saved state.
@@ -136,25 +136,32 @@ struct PickleSuite: public py::pickle_suite
     {
         math::Transform* xform = nullptr;
         {
-            py::extract<math::Transform*> x(xformObj);
-            if (x.check()) xform = x();
-            else return;
+            try {
+                xform = py::cast<math::Transform*>(xformObj);
+            }
+            catch (py::cast_error) {
+                return;
+            }
         }
 
         py::tuple state;
         {
-            py::extract<py::tuple> x(stateObj);
-            if (x.check()) state = x();
+            try {
+                state = py::cast<py::tuple>(stateObj);
+            }
+            catch (py::cast_error) {
+            }
         }
         bool badState = (py::len(state) != 5);
 
         if (!badState) {
             // Restore the object's __dict__.
-            py::extract<py::dict> x(state[int(STATE_DICT)]);
-            if (x.check()) {
-                py::dict d = py::extract<py::dict>(xformObj.attr("__dict__"))();
+            try {
+                py::dict x = py::cast<py::dict>(state[int(STATE_DICT)]);
+                py::dict d = py::cast<py::dict>(xformObj.attr("__dict__"))();
                 d.update(x());
-            } else {
+            }
+            catch (py::cast_error) {
                 badState = true;
             }
         }
@@ -166,9 +173,12 @@ struct PickleSuite: public py::pickle_suite
             const int idx[3] = { STATE_MAJOR, STATE_MINOR, STATE_FORMAT };
             uint32_t version[3] = { 0, 0, 0 };
             for (int i = 0; i < 3 && !badState; ++i) {
-                py::extract<uint32_t> x(state[idx[i]]);
-                if (x.check()) version[i] = x();
-                else badState = true;
+                try {
+                    version[i] = py::cast<uint32_t>(state[idx[i]]);
+                }
+                catch (py::cast_error) {
+                    badState = true;
+                }
             }
             libVersion.first = version[0];
             libVersion.second = version[1];
@@ -193,21 +203,25 @@ struct PickleSuite: public py::pickle_suite
                 }
             }
 #else
-            py::extract<std::string> x(bytesObj);
-            if (x.check()) serialized = x();
-            else badState = true;
+            try {
+                serialized = py::cast<std::string>(bytesObj);
+            }
+            catch (py::cast_error) {
+                badState = true;
+            }
 #endif
         }
 
         if (badState) {
             PyErr_SetObject(PyExc_ValueError,
 #if PY_MAJOR_VERSION >= 3
-                ("expected (dict, int, int, int, bytes) tuple in call to __setstate__; found %s"
+                "expected (dict, int, int, int, bytes) tuple in call to __setstate__; found %s",
 #else
-                ("expected (dict, int, int, int, str) tuple in call to __setstate__; found %s"
+                "expected (dict, int, int, int, str) tuple in call to __setstate__; found %s",
 #endif
-                     % stateObj.attr("__repr__")()).ptr());
-            py::throw_error_already_set();
+                    stateObj.attr("__repr__")().ptr());
+
+            py::error_already_set();
         }
 
         // Restore the internal state of the C++ object.
@@ -215,7 +229,6 @@ struct PickleSuite: public py::pickle_suite
         io::setVersion(istr, libVersion, formatVersion);
         xform->read(istr);
     }
-}; // struct PickleSuite
 
 } // namespace pyTransform
 
@@ -241,7 +254,7 @@ exportTransform(py::module_ &m)
             "info() -> str\n\n"
             "Return a string containing a description of this transform.\n")
 
-        .def_pickle(pyTransform::PickleSuite())
+        .def(py::pickle(&pyTransform::getstate, &pyTransform::setstate))
 
         .add_property("typeName", &math::Transform::mapType,
             "name of this transform's type")
@@ -303,18 +316,18 @@ exportTransform(py::module_ &m)
         .def(py::self != py::other<math::Transform>())
         ;
 
-    py::def("createLinearTransform", &pyTransform::createLinearFromMat, py::arg("matrix"),
+    m.def("createLinearTransform", &pyTransform::createLinearFromMat, py::arg("matrix"),
         "createLinearTransform(matrix) -> Transform\n\n"
         "Create a new linear transform from a 4 x 4 matrix given as a sequence\n"
         "of the form [[a, b, c, d], [e, f, g, h], [i, j, k, l], [m, n, o, p]],\n"
         "where [m, n, o, p] is the translation component.");
 
-    py::def("createLinearTransform", &pyTransform::createLinearFromDim,
+    m.def("createLinearTransform", &pyTransform::createLinearFromDim,
         py::arg("voxelSize") = 1.0,
         "createLinearTransform(voxelSize) -> Transform\n\n"
         "Create a new linear transform with the given uniform voxel size.");
 
-    py::def("createFrustumTransform", &pyTransform::createFrustum,
+    m.def("createFrustumTransform", &pyTransform::createFrustum,
         py::arg("xyzMin"), py::arg("xyzMax"),
          py::arg("taper"), py::arg("depth"), py::arg("voxelSize") = 1.0,
         "createFrustumTransform(xyzMin, xyzMax, taper, depth, voxelSize) -> Transform\n\n"

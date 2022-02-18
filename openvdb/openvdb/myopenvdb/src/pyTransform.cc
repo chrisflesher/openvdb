@@ -242,9 +242,13 @@ exportTransform(py::module_ &m)
         .value("Y", math::Y_AXIS)
         .value("Z", math::Z_AXIS);
 
-    py::class_<math::Transform>(m, "Transform", py::init<>())
+    py::class_<math::Transform, math::Transform::Ptr> clss(m,
+        /*classname=*/"Transform",
+        /*docstring=*/
+            "Affine 3D transform"
+        );
 
-        .def("deepCopy", &math::Transform::copy,
+    clss.def("deepCopy", &math::Transform::copy,
             "deepCopy() -> Transform\n\n"
             "Return a copy of this transform.")
 
@@ -253,11 +257,11 @@ exportTransform(py::module_ &m)
             "info() -> str\n\n"
             "Return a string containing a description of this transform.\n")
 
-        .def(py::pickle(&pyTransform::getstate, &pyTransform::setstate))
+        // .def(py::pickle(&pyTransform::getstate, &pyTransform::setstate))  // @todo: get this working...
 
-        .add_property("typeName", &math::Transform::mapType,
+        .def_property_readonly("typeName", &math::Transform::mapType,
             "name of this transform's type")
-        .add_property("isLinear", &math::Transform::isLinear,
+        .def_property_readonly("isLinear", &math::Transform::isLinear,
             "True if this transform is linear")
 
         .def("rotate", &math::Transform::preRotate,
@@ -311,8 +315,8 @@ exportTransform(py::module_ &m)
             "and round the result down to the nearest integer coordinates.")
 
         // Allow Transforms to be compared for equality and inequality.
-        .def(py::self == py::other<math::Transform>())
-        .def(py::self != py::other<math::Transform>())
+        .def(py::self == py::self)
+        .def(py::self != py::self)
         ;
 
     m.def("createLinearTransform", &pyTransform::createLinearFromMat, py::arg("matrix"),
@@ -332,7 +336,4 @@ exportTransform(py::module_ &m)
         "createFrustumTransform(xyzMin, xyzMax, taper, depth, voxelSize) -> Transform\n\n"
         "Create a new frustum transform with unit bounding box (xyzMin, xyzMax)\n"
         "and the given taper, depth and uniform voxel size.");
-
-    // allows Transform::Ptr Grid::getTransform() to work
-    py::register_ptr_to_python<math::Transform::Ptr>();
 }

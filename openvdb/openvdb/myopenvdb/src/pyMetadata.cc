@@ -42,12 +42,11 @@ void exportMetadata(py::module_ &m);
 void
 exportMetadata(py::module_ &m)
 {
-    py::class_<MetadataWrap, boost::noncopyable> clss(m,
+    py::class_<MetadataWrap, Metadata::Ptr> clss(m,  // @todo: what is the equivalent of boost::noncopyable?
         /*classname=*/"Metadata",
         /*docstring=*/
             "Class that holds the value of a single item of metadata of a type\n"
             "for which no Python equivalent exists (typically a custom type)",
-        /*ctor=*/py::no_init // can only be instantiated from C++, not from Python
     );
     clss.def("copy", py::pure_virtual(copy0),
             "copy() -> Metadata\n\nReturn a copy of this value.")
@@ -60,5 +59,4 @@ exportMetadata(py::module_ &m)
         .def("__nonzero__", py::pure_virtual(&Metadata::asBool))
         .def("__str__", py::pure_virtual(&Metadata::str))
         ;
-    py::register_ptr_to_python<Metadata::Ptr>();
 }

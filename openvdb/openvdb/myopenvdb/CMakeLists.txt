@@ -20,15 +20,19 @@ find_package(pybind11 CONFIG REQUIRED)
 set(OPENVDB_PYTHON_MODULE_SOURCE_FILES
   src/main.cc
   src/pyFloatGrid.cc
-  src/pyIntGrid.cc
-  src/pyPointGrid.cc
-  src/pyPointGrid.cc
-  src/pyTransform.cc
-  src/pyVec3Grid.cc
+#  src/pyIntGrid.cc
+#  src/pyPointGrid.cc
+#  src/pyPointGrid.cc
+#  src/pyTransform.cc
+#  src/pyVec3Grid.cc
 )
 
 pybind11_add_module(_core MODULE ${OPENVDB_PYTHON_MODULE_SOURCE_FILES})
 
 target_compile_definitions(_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
+
+target_link_libraries(_core PUBLIC
+  openvdb
+)
 
 install(TARGETS _core DESTINATION .)

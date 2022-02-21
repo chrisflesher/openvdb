@@ -6,7 +6,7 @@ namespace py = pybind11;
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 
-void exportFloatGrid(py::module_);
+void exportFloatGrid(py::module_ &m);
 
 int add(int i, int j) {
     return i + j;

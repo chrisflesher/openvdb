@@ -2359,18 +2359,18 @@ exportGrid(py::module_ &m)
                 "Return a string containing information about this grid\n"
                 "with a specified level of verbosity.\n")
 
-        //     //
-        //     // Tools
-        //     //
-        //     .def("fill", &pyGrid::fill<GridType>,
-        //         py::arg("min"), py::arg("max"), py::arg("value"), py::arg("active")=true,
-        //         "fill(min, max, value, active=True)\n\n"
-        //         "Set all voxels within a given axis-aligned box to\n"
-        //         "a constant value (either active or inactive).")
-        //     .def("signedFloodFill", &pyGrid::signedFloodFill<GridType>,
-        //         "signedFloodFill()\n\n"
-        //         "Propagate the sign from a narrow-band level set into inactive\n"
-        //         "voxels and tiles.")
+            //
+            // Tools
+            //
+            .def("fill", &pyGrid::fill<GridType>,
+                py::arg("min"), py::arg("max"), py::arg("value"), py::arg("active")=true,
+                "fill(min, max, value, active=True)\n\n"
+                "Set all voxels within a given axis-aligned box to\n"
+                "a constant value (either active or inactive).")
+            .def("signedFloodFill", &pyGrid::signedFloodFill<GridType>,
+                "signedFloodFill()\n\n"
+                "Propagate the sign from a narrow-band level set into inactive\n"
+                "voxels and tiles.")
 
         //     .def("copyFromArray", &pyGrid::copyFromArray<GridType>,
         //         py::arg("array"), py::arg("ijk")=Coord(0),

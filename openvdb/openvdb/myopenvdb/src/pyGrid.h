@@ -2184,370 +2184,370 @@ exportGrid(py::module_ &m)
 
     const std::string pyGridTypeName = Traits::name();
 
-    // // Define the Grid wrapper class and make it the current scope.
-    // {
-    //     py::class_<GridType, /*HeldType=*/GridPtr> clss(m,
-    //         /*classname=*/pyGridTypeName.c_str(),
-    //         /*docstring=*/(Traits::descr()).c_str()
-    //     );
+    // Define the Grid wrapper class and make it the current scope.
+    {
+        py::class_<GridType, /*HeldType=*/GridPtr> clss(m,
+            /*classname=*/pyGridTypeName.c_str(),
+            /*docstring=*/(Traits::descr()).c_str()
+        );
 
-    //     clss.def(py::init<const ValueT&>(), py::arg("background")=pyGrid::getZeroValue<GridType>(),
-    //             "Initialize with the given background value.")
+        clss.def(py::init<const ValueT&>(), py::arg("background")=pyGrid::getZeroValue<GridType>(),
+                "Initialize with the given background value.")
 
-    //         .def("copy", &pyGrid::copyGrid<GridType>,
-    //             ("copy() -> " + pyGridTypeName + "\n\n"
-    //             "Return a shallow copy of this grid, i.e., a grid\n"
-    //             "that shares its voxel data with this grid.").c_str())
-    //         .def("deepCopy", &GridType::deepCopy,
-    //             ("deepCopy() -> " + pyGridTypeName + "\n\n"
-    //             "Return a deep copy of this grid.\n").c_str())
+            .def("copy", &pyGrid::copyGrid<GridType>,
+                ("copy() -> " + pyGridTypeName + "\n\n"
+                "Return a shallow copy of this grid, i.e., a grid\n"
+                "that shares its voxel data with this grid.").c_str())
+            .def("deepCopy", &GridType::deepCopy,
+                ("deepCopy() -> " + pyGridTypeName + "\n\n"
+                "Return a deep copy of this grid.\n").c_str())
 
-    //         // .def_pickle(pyGrid::PickleSuite<GridType>())
+            // .def_pickle(pyGrid::PickleSuite<GridType>())
 
-    //         .def("sharesWith", &pyGrid::sharesWith<GridType>,
-    //             ("sharesWith(" + pyGridTypeName + ") -> bool\n\n"
-    //             "Return True if this grid shares its voxel data with the given grid.").c_str())
+            .def("sharesWith", &pyGrid::sharesWith<GridType>,
+                ("sharesWith(" + pyGridTypeName + ") -> bool\n\n"
+                "Return True if this grid shares its voxel data with the given grid.").c_str())
 
-    //         /// @todo Any way to set a docstring for a class property?
-    //         .def_property_readonly("valueTypeName", &pyGrid::getValueType<GridType>)
-    //             /// @todo docstring = "name of this grid's value type"
-    //         .def_property_readonly("zeroValue", &pyGrid::getZeroValue<GridType>)
-    //             /// @todo docstring = "zero, as expressed in this grid's value type"
-    //         .def_property_readonly("oneValue", &pyGrid::getOneValue<GridType>)
-    //             /// @todo docstring = "one, as expressed in this grid's value type"
-    //         /// @todo Is Grid.typeName ever needed?
-    //         //.add_static_property("typeName", &GridType::gridType)
-    //             /// @todo docstring = to "name of this grid's type"
+            /// @todo Any way to set a docstring for a class property?
+            .def_property_readonly("valueTypeName", &pyGrid::getValueType<GridType>)
+                /// @todo docstring = "name of this grid's value type"
+            .def_property_readonly("zeroValue", &pyGrid::getZeroValue<GridType>)
+                /// @todo docstring = "zero, as expressed in this grid's value type"
+            .def_property_readonly("oneValue", &pyGrid::getOneValue<GridType>)
+                /// @todo docstring = "one, as expressed in this grid's value type"
+            /// @todo Is Grid.typeName ever needed?
+            //.add_static_property("typeName", &GridType::gridType)
+                /// @todo docstring = to "name of this grid's type"
 
-    //         .def_property("background",
-    //             &pyGrid::getGridBackground<GridType>, &pyGrid::setGridBackground<GridType>,
-    //             "value of this grid's background voxels")
-    //         .def_property("name", &GridType::getName, &pyGrid::setGridName,
-    //             "this grid's name")
-    //         .def_property("creator", &GridType::getCreator, &pyGrid::setGridCreator,
-    //             "description of this grid's creator")
+            .def_property("background",
+                &pyGrid::getGridBackground<GridType>, &pyGrid::setGridBackground<GridType>,
+                "value of this grid's background voxels")
+            .def_property("name", &GridType::getName, &pyGrid::setGridName,
+                "this grid's name")
+            .def_property("creator", &GridType::getCreator, &pyGrid::setGridCreator,
+                "description of this grid's creator")
 
-    //         .def_property("transform", getTransform, &pyGrid::setGridTransform,
-    //             "transform associated with this grid")
+            .def_property("transform", getTransform, &pyGrid::setGridTransform,
+                "transform associated with this grid")
 
-    //         .def_property("gridClass", &pyGrid::getGridClass, &pyGrid::setGridClass,
-    //             "the class of volumetric data (level set, fog volume, etc.)\nstored in this grid")
+            .def_property("gridClass", &pyGrid::getGridClass, &pyGrid::setGridClass,
+                "the class of volumetric data (level set, fog volume, etc.)\nstored in this grid")
 
-    //         .def_property("vectorType", &pyGrid::getVecType, &pyGrid::setVecType,
-    //             "how transforms are applied to values stored in this grid")
+            .def_property("vectorType", &pyGrid::getVecType, &pyGrid::setVecType,
+                "how transforms are applied to values stored in this grid")
 
-    //         .def("getAccessor", &pyGrid::getAccessor<GridType>,
-    //             ("getAccessor() -> " + pyGridTypeName + "Accessor\n\n"
-    //             "Return an accessor that provides random read and write access\n"
-    //             "to this grid's voxels.").c_str())
-    //         .def("getConstAccessor", &pyGrid::getConstAccessor<GridType>,
-    //             ("getConstAccessor() -> " + pyGridTypeName + "Accessor\n\n"
-    //             "Return an accessor that provides random read-only access\n"
-    //             "to this grid's voxels.").c_str())
+            .def("getAccessor", &pyGrid::getAccessor<GridType>,
+                ("getAccessor() -> " + pyGridTypeName + "Accessor\n\n"
+                "Return an accessor that provides random read and write access\n"
+                "to this grid's voxels.").c_str())
+            .def("getConstAccessor", &pyGrid::getConstAccessor<GridType>,
+                ("getConstAccessor() -> " + pyGridTypeName + "Accessor\n\n"
+                "Return an accessor that provides random read-only access\n"
+                "to this grid's voxels.").c_str())
 
-    //         //
-    //         // Metadata
-    //         //
-    //         // .def_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
-    //         //     "dict of this grid's metadata\n\n"
-    //         //     "Setting this attribute replaces all of this grid's metadata,\n"
-    //         //     "but mutating it in place has no effect on the grid, since\n"
-    //         //     "the value of this attribute is a only a copy of the metadata.\n"
-    //         //     "Use either indexing or updateMetadata() to mutate metadata in place.")
-    //         // .def("updateMetadata", &pyGrid::updateMetadata,
-    //         //     "updateMetadata(dict)\n\n"
-    //         //     "Add metadata to this grid, replacing any existing items\n"
-    //         //     "having the same names as the new items.")
+        //     //
+        //     // Metadata
+        //     //
+        //     // .def_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
+        //     //     "dict of this grid's metadata\n\n"
+        //     //     "Setting this attribute replaces all of this grid's metadata,\n"
+        //     //     "but mutating it in place has no effect on the grid, since\n"
+        //     //     "the value of this attribute is a only a copy of the metadata.\n"
+        //     //     "Use either indexing or updateMetadata() to mutate metadata in place.")
+        //     // .def("updateMetadata", &pyGrid::updateMetadata,
+        //     //     "updateMetadata(dict)\n\n"
+        //     //     "Add metadata to this grid, replacing any existing items\n"
+        //     //     "having the same names as the new items.")
 
-    //         // .def("addStatsMetadata", &GridType::addStatsMetadata,
-    //         //     "addStatsMetadata()\n\n"
-    //         //     "Add metadata to this grid comprising the current values\n"
-    //         //     "of statistics like the active voxel count and bounding box.\n"
-    //         //     "(This metadata is not automatically kept up-to-date with\n"
-    //         //     "changes to this grid.)")
-    //         // .def("getStatsMetadata", &pyGrid::getStatsMetadata,
-    //         //     "getStatsMetadata() -> dict\n\n"
-    //         //     "Return a (possibly empty) dict containing just the metadata\n"
-    //         //     "that was added to this grid with addStatsMetadata().")
+        //     // .def("addStatsMetadata", &GridType::addStatsMetadata,
+        //     //     "addStatsMetadata()\n\n"
+        //     //     "Add metadata to this grid comprising the current values\n"
+        //     //     "of statistics like the active voxel count and bounding box.\n"
+        //     //     "(This metadata is not automatically kept up-to-date with\n"
+        //     //     "changes to this grid.)")
+        //     // .def("getStatsMetadata", &pyGrid::getStatsMetadata,
+        //     //     "getStatsMetadata() -> dict\n\n"
+        //     //     "Return a (possibly empty) dict containing just the metadata\n"
+        //     //     "that was added to this grid with addStatsMetadata().")
 
-    //         // .def("__getitem__", &pyGrid::getMetadata,
-    //         //     "__getitem__(name) -> value\n\n"
-    //         //     "Return the metadata value associated with the given name.")
-    //         // .def("__setitem__", &pyGrid::setMetadata,
-    //         //     "__setitem__(name, value)\n\n"
-    //         //     "Add metadata to this grid, replacing any existing item having\n"
-    //         //     "the same name as the new item.")
-    //         // .def("__delitem__", &pyGrid::removeMetadata,
-    //         //     "__delitem__(name)\n\n"
-    //         //     "Remove the metadata with the given name.")
-    //         // .def("__contains__", &pyGrid::hasMetadata,
-    //         //     "__contains__(name) -> bool\n\n"
-    //         //     "Return True if this grid contains metadata with the given name.")
-    //         // .def("__iter__", &pyGrid::getMetadataKeys,
-    //         //     "__iter__() -> iterator\n\n"
-    //         //     "Return an iterator over this grid's metadata keys.")
-    //         // .def("iterkeys", &pyGrid::getMetadataKeys,
-    //         //     "iterkeys() -> iterator\n\n"
-    //         //     "Return an iterator over this grid's metadata keys.")
+        //     // .def("__getitem__", &pyGrid::getMetadata,
+        //     //     "__getitem__(name) -> value\n\n"
+        //     //     "Return the metadata value associated with the given name.")
+        //     // .def("__setitem__", &pyGrid::setMetadata,
+        //     //     "__setitem__(name, value)\n\n"
+        //     //     "Add metadata to this grid, replacing any existing item having\n"
+        //     //     "the same name as the new item.")
+        //     // .def("__delitem__", &pyGrid::removeMetadata,
+        //     //     "__delitem__(name)\n\n"
+        //     //     "Remove the metadata with the given name.")
+        //     // .def("__contains__", &pyGrid::hasMetadata,
+        //     //     "__contains__(name) -> bool\n\n"
+        //     //     "Return True if this grid contains metadata with the given name.")
+        //     // .def("__iter__", &pyGrid::getMetadataKeys,
+        //     //     "__iter__() -> iterator\n\n"
+        //     //     "Return an iterator over this grid's metadata keys.")
+        //     // .def("iterkeys", &pyGrid::getMetadataKeys,
+        //     //     "iterkeys() -> iterator\n\n"
+        //     //     "Return an iterator over this grid's metadata keys.")
 
-    //         // .def_property("saveFloatAsHalf",
-    //         //     &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,
-    //         //     "if True, write floating-point voxel values as 16-bit half floats")
+        //     // .def_property("saveFloatAsHalf",
+        //     //     &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,
+        //     //     "if True, write floating-point voxel values as 16-bit half floats")
 
-    //         //
-    //         // Statistics
-    //         //
-    //         .def("memUsage", &GridType::memUsage,
-    //             "memUsage() -> int\n\n"
-    //             "Return the memory usage of this grid in bytes.")
+        //     //
+        //     // Statistics
+        //     //
+        //     .def("memUsage", &GridType::memUsage,
+        //         "memUsage() -> int\n\n"
+        //         "Return the memory usage of this grid in bytes.")
 
-    //         .def("evalLeafBoundingBox", &pyGrid::evalLeafBoundingBox<GridType>,
-    //             "evalLeafBoundingBox() -> xyzMin, xyzMax\n\n"
-    //             "Return the coordinates of opposite corners of the axis-aligned\n"
-    //             "bounding box of all leaf nodes.")
-    //         .def("evalLeafDim", &pyGrid::evalLeafDim<GridType>,
-    //             "evalLeafDim() -> x, y, z\n\n"
-    //             "Return the dimensions of the axis-aligned bounding box\n"
-    //             "of all leaf nodes.")
+        //     .def("evalLeafBoundingBox", &pyGrid::evalLeafBoundingBox<GridType>,
+        //         "evalLeafBoundingBox() -> xyzMin, xyzMax\n\n"
+        //         "Return the coordinates of opposite corners of the axis-aligned\n"
+        //         "bounding box of all leaf nodes.")
+        //     .def("evalLeafDim", &pyGrid::evalLeafDim<GridType>,
+        //         "evalLeafDim() -> x, y, z\n\n"
+        //         "Return the dimensions of the axis-aligned bounding box\n"
+        //         "of all leaf nodes.")
 
-    //         .def("evalActiveVoxelBoundingBox", &pyGrid::evalActiveVoxelBoundingBox<GridType>,
-    //             "evalActiveVoxelBoundingBox() -> xyzMin, xyzMax\n\n"
-    //             "Return the coordinates of opposite corners of the axis-aligned\n"
-    //             "bounding box of all active voxels.")
-    //         .def("evalActiveVoxelDim", &GridType::evalActiveVoxelDim,
-    //             "evalActiveVoxelDim() -> x, y, z\n\n"
-    //             "Return the dimensions of the axis-aligned bounding box of all\n"
-    //             "active voxels.")
+        //     .def("evalActiveVoxelBoundingBox", &pyGrid::evalActiveVoxelBoundingBox<GridType>,
+        //         "evalActiveVoxelBoundingBox() -> xyzMin, xyzMax\n\n"
+        //         "Return the coordinates of opposite corners of the axis-aligned\n"
+        //         "bounding box of all active voxels.")
+        //     .def("evalActiveVoxelDim", &GridType::evalActiveVoxelDim,
+        //         "evalActiveVoxelDim() -> x, y, z\n\n"
+        //         "Return the dimensions of the axis-aligned bounding box of all\n"
+        //         "active voxels.")
 
-    //         .def_property_readonly("treeDepth", &pyGrid::treeDepth<GridType>,
-    //             "depth of this grid's tree from root node to leaf node")
-    //         .def("nodeLog2Dims", &pyGrid::getNodeLog2Dims<GridType>,
-    //             "list of Log2Dims of the nodes of this grid's tree\n"
-    //             "in order from root to leaf")
+        //     .def_property_readonly("treeDepth", &pyGrid::treeDepth<GridType>,
+        //         "depth of this grid's tree from root node to leaf node")
+        //     .def("nodeLog2Dims", &pyGrid::getNodeLog2Dims<GridType>,
+        //         "list of Log2Dims of the nodes of this grid's tree\n"
+        //         "in order from root to leaf")
 
-    //         .def("leafCount", &pyGrid::leafCount<GridType>,
-    //             "leafCount() -> int\n\n"
-    //             "Return the number of leaf nodes in this grid's tree.")
-    //         .def("nonLeafCount", &pyGrid::nonLeafCount<GridType>,
-    //             "nonLeafCount() -> int\n\n"
-    //             "Return the number of non-leaf nodes in this grid's tree.")
+        //     .def("leafCount", &pyGrid::leafCount<GridType>,
+        //         "leafCount() -> int\n\n"
+        //         "Return the number of leaf nodes in this grid's tree.")
+        //     .def("nonLeafCount", &pyGrid::nonLeafCount<GridType>,
+        //         "nonLeafCount() -> int\n\n"
+        //         "Return the number of non-leaf nodes in this grid's tree.")
 
-    //         .def("activeVoxelCount", &GridType::activeVoxelCount,
-    //             "activeVoxelCount() -> int\n\n"
-    //             "Return the number of active voxels in this grid.")
-    //         .def("activeLeafVoxelCount", &pyGrid::activeLeafVoxelCount<GridType>,
-    //             "activeLeafVoxelCount() -> int\n\n"
-    //             "Return the number of active voxels that are stored\n"
-    //             "in the leaf nodes of this grid's tree.")
+        //     .def("activeVoxelCount", &GridType::activeVoxelCount,
+        //         "activeVoxelCount() -> int\n\n"
+        //         "Return the number of active voxels in this grid.")
+        //     .def("activeLeafVoxelCount", &pyGrid::activeLeafVoxelCount<GridType>,
+        //         "activeLeafVoxelCount() -> int\n\n"
+        //         "Return the number of active voxels that are stored\n"
+        //         "in the leaf nodes of this grid's tree.")
 
-    //         .def("evalMinMax", &pyGrid::evalMinMax<GridType>,
-    //             "evalMinMax() -> min, max\n\n"
-    //             "Return the minimum and maximum active values in this grid.")
+        //     .def("evalMinMax", &pyGrid::evalMinMax<GridType>,
+        //         "evalMinMax() -> min, max\n\n"
+        //         "Return the minimum and maximum active values in this grid.")
 
-    //         .def("getIndexRange", &pyGrid::getIndexRange<GridType>,
-    //             "getIndexRange() -> min, max\n\n"
-    //             "Return the minimum and maximum coordinates that are represented\n"
-    //             "in this grid.  These might include background voxels.")
-    //         //.def("expand", &pyGrid::expandIndexRange<GridType>,
-    //         //    py::arg("xyz"),
-    //         //    "expand(xyz)\n\n"
-    //         //    "Expand this grid's index range to include the given coordinates.")
+        //     .def("getIndexRange", &pyGrid::getIndexRange<GridType>,
+        //         "getIndexRange() -> min, max\n\n"
+        //         "Return the minimum and maximum coordinates that are represented\n"
+        //         "in this grid.  These might include background voxels.")
+        //     //.def("expand", &pyGrid::expandIndexRange<GridType>,
+        //     //    py::arg("xyz"),
+        //     //    "expand(xyz)\n\n"
+        //     //    "Expand this grid's index range to include the given coordinates.")
 
-    //         .def("info", &pyGrid::gridInfo,
-    //             py::arg("verbosity")=1,
-    //             "info(verbosity=1) -> str\n\n"
-    //             "Return a string containing information about this grid\n"
-    //             "with a specified level of verbosity.\n")
+        //     .def("info", &pyGrid::gridInfo,
+        //         py::arg("verbosity")=1,
+        //         "info(verbosity=1) -> str\n\n"
+        //         "Return a string containing information about this grid\n"
+        //         "with a specified level of verbosity.\n")
 
-    //         //
-    //         // Tools
-    //         //
-    //         .def("fill", &pyGrid::fill<GridType>,
-    //             py::arg("min"), py::arg("max"), py::arg("value"), py::arg("active")=true,
-    //             "fill(min, max, value, active=True)\n\n"
-    //             "Set all voxels within a given axis-aligned box to\n"
-    //             "a constant value (either active or inactive).")
-    //         .def("signedFloodFill", &pyGrid::signedFloodFill<GridType>,
-    //             "signedFloodFill()\n\n"
-    //             "Propagate the sign from a narrow-band level set into inactive\n"
-    //             "voxels and tiles.")
+        //     //
+        //     // Tools
+        //     //
+        //     .def("fill", &pyGrid::fill<GridType>,
+        //         py::arg("min"), py::arg("max"), py::arg("value"), py::arg("active")=true,
+        //         "fill(min, max, value, active=True)\n\n"
+        //         "Set all voxels within a given axis-aligned box to\n"
+        //         "a constant value (either active or inactive).")
+        //     .def("signedFloodFill", &pyGrid::signedFloodFill<GridType>,
+        //         "signedFloodFill()\n\n"
+        //         "Propagate the sign from a narrow-band level set into inactive\n"
+        //         "voxels and tiles.")
 
-    //         .def("copyFromArray", &pyGrid::copyFromArray<GridType>,
-    //             py::arg("array"), py::arg("ijk")=Coord(0),
-    //                  py::arg("tolerance")=pyGrid::getZeroValue<GridType>(),
-    //             ("copyFromArray(array, ijk=(0, 0, 0), tolerance=0)\n\n"
-    //             "Populate this grid, starting at voxel (i, j, k), with values\nfrom a "
-    //             + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
-    //             + "-dimensional array.  Mark voxels as inactive\n"
-    //             "if and only if their values are equal to this grid's\n"
-    //             "background value within the given tolerance.").c_str())
-    //         .def("copyToArray", &pyGrid::copyToArray<GridType>,
-    //             py::arg("array"), py::arg("ijk")=Coord(0),
-    //             ("copyToArray(array, ijk=(0, 0, 0))\n\nPopulate a "
-    //             + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
-    //             + "-dimensional array with values\n"
-    //             "from this grid, starting at voxel (i, j, k).").c_str())
+        //     .def("copyFromArray", &pyGrid::copyFromArray<GridType>,
+        //         py::arg("array"), py::arg("ijk")=Coord(0),
+        //              py::arg("tolerance")=pyGrid::getZeroValue<GridType>(),
+        //         ("copyFromArray(array, ijk=(0, 0, 0), tolerance=0)\n\n"
+        //         "Populate this grid, starting at voxel (i, j, k), with values\nfrom a "
+        //         + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
+        //         + "-dimensional array.  Mark voxels as inactive\n"
+        //         "if and only if their values are equal to this grid's\n"
+        //         "background value within the given tolerance.").c_str())
+        //     .def("copyToArray", &pyGrid::copyToArray<GridType>,
+        //         py::arg("array"), py::arg("ijk")=Coord(0),
+        //         ("copyToArray(array, ijk=(0, 0, 0))\n\nPopulate a "
+        //         + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
+        //         + "-dimensional array with values\n"
+        //         "from this grid, starting at voxel (i, j, k).").c_str())
 
-    //         .def("convertToQuads",
-    //             &pyGrid::volumeToQuadMesh<GridType>,
-    //             py::arg("isovalue")=0,
-    //             "convertToQuads(isovalue=0) -> points, quads\n\n"
-    //             "Uniformly mesh a scalar grid that has a continuous isosurface\n"
-    //             "at the given isovalue.  Return a NumPy array of world-space\n"
-    //             "points and a NumPy array of 4-tuples of point indices, which\n"
-    //             "specify the vertices of the quadrilaterals that form the mesh.")
-    //         .def("convertToPolygons",
-    //             &pyGrid::volumeToMesh<GridType>,
-    //             py::arg("isovalue")=0, py::arg("adaptivity")=0,
-    //             "convertToPolygons(isovalue=0, adaptivity=0) -> points, triangles, quads\n\n"
-    //             "Adaptively mesh a scalar grid that has a continuous isosurface\n"
-    //             "at the given isovalue.  Return a NumPy array of world-space\n"
-    //             "points and NumPy arrays of 3- and 4-tuples of point indices,\n"
-    //             "which specify the vertices of the triangles and quadrilaterals\n"
-    //             "that form the mesh.  Adaptivity can vary from 0 to 1, where 0\n"
-    //             "produces a high-polygon-count mesh that closely approximates\n"
-    //             "the isosurface, and 1 produces a lower-polygon-count mesh\n"
-    //             "with some loss of surface detail.")
-    //         .def_static("createLevelSetFromPolygons",
-    //             &pyGrid::meshToLevelSet<GridType>,
-    //             py::arg("points"),
-    //                 py::arg("triangles")=py::none(),
-    //                 py::arg("quads")=py::none(),
-    //                 py::arg("transform")=py::none(),
-    //                 py::arg("halfWidth")=openvdb::LEVEL_SET_HALF_WIDTH,
-    //             ("createLevelSetFromPolygons(points, triangles=None, quads=None,\n"
-    //              "    transform=None, halfWidth="
-    //              + std::to_string(openvdb::LEVEL_SET_HALF_WIDTH) + ") -> "
-    //              + pyGridTypeName + "\n\n"
-    //             "Convert a triangle and/or quad mesh to a narrow-band level set volume.\n"
-    //             "The mesh must form a closed surface, but the surface need not be\n"
-    //             "manifold and may have self intersections and degenerate faces.\n"
-    //             "The mesh is described by a NumPy array of world-space points\n"
-    //             "and NumPy arrays of 3- and 4-tuples of point indices that specify\n"
-    //             "the vertices of the triangles and quadrilaterals that form the mesh.\n"
-    //             "Either the triangle or the quad array may be empty or None.\n"
-    //             "The resulting volume will have the given transform (or the identity\n"
-    //             "transform if no transform is given) and a narrow band width of\n"
-    //             "2 x halfWidth voxels.").c_str())
+        //     .def("convertToQuads",
+        //         &pyGrid::volumeToQuadMesh<GridType>,
+        //         py::arg("isovalue")=0,
+        //         "convertToQuads(isovalue=0) -> points, quads\n\n"
+        //         "Uniformly mesh a scalar grid that has a continuous isosurface\n"
+        //         "at the given isovalue.  Return a NumPy array of world-space\n"
+        //         "points and a NumPy array of 4-tuples of point indices, which\n"
+        //         "specify the vertices of the quadrilaterals that form the mesh.")
+        //     .def("convertToPolygons",
+        //         &pyGrid::volumeToMesh<GridType>,
+        //         py::arg("isovalue")=0, py::arg("adaptivity")=0,
+        //         "convertToPolygons(isovalue=0, adaptivity=0) -> points, triangles, quads\n\n"
+        //         "Adaptively mesh a scalar grid that has a continuous isosurface\n"
+        //         "at the given isovalue.  Return a NumPy array of world-space\n"
+        //         "points and NumPy arrays of 3- and 4-tuples of point indices,\n"
+        //         "which specify the vertices of the triangles and quadrilaterals\n"
+        //         "that form the mesh.  Adaptivity can vary from 0 to 1, where 0\n"
+        //         "produces a high-polygon-count mesh that closely approximates\n"
+        //         "the isosurface, and 1 produces a lower-polygon-count mesh\n"
+        //         "with some loss of surface detail.")
+        //     .def_static("createLevelSetFromPolygons",
+        //         &pyGrid::meshToLevelSet<GridType>,
+        //         py::arg("points"),
+        //             py::arg("triangles")=py::none(),
+        //             py::arg("quads")=py::none(),
+        //             py::arg("transform")=py::none(),
+        //             py::arg("halfWidth")=openvdb::LEVEL_SET_HALF_WIDTH,
+        //         ("createLevelSetFromPolygons(points, triangles=None, quads=None,\n"
+        //          "    transform=None, halfWidth="
+        //          + std::to_string(openvdb::LEVEL_SET_HALF_WIDTH) + ") -> "
+        //          + pyGridTypeName + "\n\n"
+        //         "Convert a triangle and/or quad mesh to a narrow-band level set volume.\n"
+        //         "The mesh must form a closed surface, but the surface need not be\n"
+        //         "manifold and may have self intersections and degenerate faces.\n"
+        //         "The mesh is described by a NumPy array of world-space points\n"
+        //         "and NumPy arrays of 3- and 4-tuples of point indices that specify\n"
+        //         "the vertices of the triangles and quadrilaterals that form the mesh.\n"
+        //         "Either the triangle or the quad array may be empty or None.\n"
+        //         "The resulting volume will have the given transform (or the identity\n"
+        //         "transform if no transform is given) and a narrow band width of\n"
+        //         "2 x halfWidth voxels.").c_str())
 
-    //         .def("prune", &pyGrid::prune<GridType>,
-    //             py::arg("tolerance")=0,
-    //             "prune(tolerance=0)\n\n"
-    //             "Remove nodes whose values all have the same active state\n"
-    //             "and are equal to within a given tolerance.")
-    //         .def("pruneInactive", &pyGrid::pruneInactive<GridType>,
-    //             py::arg("value")=py::none(),
-    //             "pruneInactive(value=None)\n\n"
-    //             "Remove nodes whose values are all inactive and replace them\n"
-    //             "with either background tiles or tiles of the given value\n"
-    //             "(if the value is not None).")
+        //     .def("prune", &pyGrid::prune<GridType>,
+        //         py::arg("tolerance")=0,
+        //         "prune(tolerance=0)\n\n"
+        //         "Remove nodes whose values all have the same active state\n"
+        //         "and are equal to within a given tolerance.")
+        //     .def("pruneInactive", &pyGrid::pruneInactive<GridType>,
+        //         py::arg("value")=py::none(),
+        //         "pruneInactive(value=None)\n\n"
+        //         "Remove nodes whose values are all inactive and replace them\n"
+        //         "with either background tiles or tiles of the given value\n"
+        //         "(if the value is not None).")
 
-    //         .def("empty", &GridType::empty,
-    //             "empty() -> bool\n\n"
-    //             "Return True if this grid contains only background voxels.")
-    //         .def("__nonzero__", &pyGrid::notEmpty<GridType>)
+        //     .def("empty", &GridType::empty,
+        //         "empty() -> bool\n\n"
+        //         "Return True if this grid contains only background voxels.")
+        //     .def("__nonzero__", &pyGrid::notEmpty<GridType>)
 
-    //         .def("clear", &GridType::clear,
-    //             "clear()\n\n"
-    //             "Remove all tiles from this grid and all nodes other than the root node.")
+        //     .def("clear", &GridType::clear,
+        //         "clear()\n\n"
+        //         "Remove all tiles from this grid and all nodes other than the root node.")
 
-    //         .def("merge", &GridType::merge,
-    //             ("merge(" + pyGridTypeName + ")\n\n"
-    //             "Move child nodes from the other grid into this grid wherever\n"
-    //             "those nodes correspond to constant-value tiles in this grid,\n"
-    //             "and replace leaf-level inactive voxels in this grid with\n"
-    //             "corresponding voxels in the other grid that are active.\n\n"
-    //             "Note: this operation always empties the other grid.").c_str())
+        //     .def("merge", &GridType::merge,
+        //         ("merge(" + pyGridTypeName + ")\n\n"
+        //         "Move child nodes from the other grid into this grid wherever\n"
+        //         "those nodes correspond to constant-value tiles in this grid,\n"
+        //         "and replace leaf-level inactive voxels in this grid with\n"
+        //         "corresponding voxels in the other grid that are active.\n\n"
+        //         "Note: this operation always empties the other grid.").c_str())
 
-    //         .def("mapOn", &pyGrid::mapOn<GridType>,
-    //             py::arg("function"),
-    //             "mapOn(function)\n\n"
-    //             "Iterate over all the active (\"on\") values (tile and voxel)\n"
-    //             "of this grid and replace each value with function(value).\n\n"
-    //             "Example: grid.mapOn(lambda x: x * 2 if x < 0.5 else x)")
+        //     .def("mapOn", &pyGrid::mapOn<GridType>,
+        //         py::arg("function"),
+        //         "mapOn(function)\n\n"
+        //         "Iterate over all the active (\"on\") values (tile and voxel)\n"
+        //         "of this grid and replace each value with function(value).\n\n"
+        //         "Example: grid.mapOn(lambda x: x * 2 if x < 0.5 else x)")
 
-    //         .def("mapOff", &pyGrid::mapOff<GridType>,
-    //             py::arg("function"),
-    //             "mapOff(function)\n\n"
-    //             "Iterate over all the inactive (\"off\") values (tile and voxel)\n"
-    //             "of this grid and replace each value with function(value).\n\n"
-    //             "Example: grid.mapOff(lambda x: x * 2 if x < 0.5 else x)")
+        //     .def("mapOff", &pyGrid::mapOff<GridType>,
+        //         py::arg("function"),
+        //         "mapOff(function)\n\n"
+        //         "Iterate over all the inactive (\"off\") values (tile and voxel)\n"
+        //         "of this grid and replace each value with function(value).\n\n"
+        //         "Example: grid.mapOff(lambda x: x * 2 if x < 0.5 else x)")
 
-    //         .def("mapAll", &pyGrid::mapAll<GridType>,
-    //             py::arg("function"),
-    //             "mapAll(function)\n\n"
-    //             "Iterate over all values (tile and voxel) of this grid\n"
-    //             "and replace each value with function(value).\n\n"
-    //             "Example: grid.mapAll(lambda x: x * 2 if x < 0.5 else x)")
+        //     .def("mapAll", &pyGrid::mapAll<GridType>,
+        //         py::arg("function"),
+        //         "mapAll(function)\n\n"
+        //         "Iterate over all values (tile and voxel) of this grid\n"
+        //         "and replace each value with function(value).\n\n"
+        //         "Example: grid.mapAll(lambda x: x * 2 if x < 0.5 else x)")
 
-    //         .def("combine", &pyGrid::combine<GridType>,
-    //             py::arg("grid"), py::arg("function"),
-    //             "combine(grid, function)\n\n"
-    //             "Compute function(self, other) over all corresponding pairs\n"
-    //             "of values (tile or voxel) of this grid and the other grid\n"
-    //             "and store the result in this grid.\n\n"
-    //             "Note: this operation always empties the other grid.\n\n"
-    //             "Example: grid.combine(otherGrid, lambda a, b: min(a, b))")
+        //     .def("combine", &pyGrid::combine<GridType>,
+        //         py::arg("grid"), py::arg("function"),
+        //         "combine(grid, function)\n\n"
+        //         "Compute function(self, other) over all corresponding pairs\n"
+        //         "of values (tile or voxel) of this grid and the other grid\n"
+        //         "and store the result in this grid.\n\n"
+        //         "Note: this operation always empties the other grid.\n\n"
+        //         "Example: grid.combine(otherGrid, lambda a, b: min(a, b))")
 
-    //         //
-    //         // Iterators
-    //         //
-    //         .def("citerOnValues", &pyGrid::IterTraits<GridType, ValueOnCIterT>::begin,
-    //             "citerOnValues() -> iterator\n\n"
-    //             "Return a read-only iterator over this grid's active\ntile and voxel values.")
-    //         .def("citerOffValues", &pyGrid::IterTraits<GridType, ValueOffCIterT>::begin,
-    //             "iterOffValues() -> iterator\n\n"
-    //             "Return a read-only iterator over this grid's inactive\ntile and voxel values.")
-    //         .def("citerAllValues", &pyGrid::IterTraits<GridType, ValueAllCIterT>::begin,
-    //             "iterAllValues() -> iterator\n\n"
-    //             "Return a read-only iterator over all of this grid's\ntile and voxel values.")
+        //     //
+        //     // Iterators
+        //     //
+        //     .def("citerOnValues", &pyGrid::IterTraits<GridType, ValueOnCIterT>::begin,
+        //         "citerOnValues() -> iterator\n\n"
+        //         "Return a read-only iterator over this grid's active\ntile and voxel values.")
+        //     .def("citerOffValues", &pyGrid::IterTraits<GridType, ValueOffCIterT>::begin,
+        //         "iterOffValues() -> iterator\n\n"
+        //         "Return a read-only iterator over this grid's inactive\ntile and voxel values.")
+        //     .def("citerAllValues", &pyGrid::IterTraits<GridType, ValueAllCIterT>::begin,
+        //         "iterAllValues() -> iterator\n\n"
+        //         "Return a read-only iterator over all of this grid's\ntile and voxel values.")
 
-    //         .def("iterOnValues", &pyGrid::IterTraits<GridType, ValueOnIterT>::begin,
-    //             "iterOnValues() -> iterator\n\n"
-    //             "Return a read/write iterator over this grid's active\ntile and voxel values.")
-    //         .def("iterOffValues", &pyGrid::IterTraits<GridType, ValueOffIterT>::begin,
-    //             "iterOffValues() -> iterator\n\n"
-    //             "Return a read/write iterator over this grid's inactive\ntile and voxel values.")
-    //         .def("iterAllValues", &pyGrid::IterTraits<GridType, ValueAllIterT>::begin,
-    //             "iterAllValues() -> iterator\n\n"
-    //             "Return a read/write iterator over all of this grid's\ntile and voxel values.")
+        //     .def("iterOnValues", &pyGrid::IterTraits<GridType, ValueOnIterT>::begin,
+        //         "iterOnValues() -> iterator\n\n"
+        //         "Return a read/write iterator over this grid's active\ntile and voxel values.")
+        //     .def("iterOffValues", &pyGrid::IterTraits<GridType, ValueOffIterT>::begin,
+        //         "iterOffValues() -> iterator\n\n"
+        //         "Return a read/write iterator over this grid's inactive\ntile and voxel values.")
+        //     .def("iterAllValues", &pyGrid::IterTraits<GridType, ValueAllIterT>::begin,
+        //         "iterAllValues() -> iterator\n\n"
+        //         "Return a read/write iterator over all of this grid's\ntile and voxel values.")
 
-    //         ; // py::class_<Grid>
+            ; // py::class_<Grid>
 
-    //     // @todo: Not sure if this needs to be translated since pybin11 should
-    //     // already manage the smart pointer properly from the class_ call??
-    //     // // Register the GridPtr-to-Python object converter explicitly
-    //     // // if it is not already implicitly registered.
-    //     // try {
-    //     //     py::object testObj{GridPtr()};
-    //     // } catch (py::error_already_set&) {
-    //     //     PyErr_Clear();
-    //     //     py::register_ptr_to_python<GridPtr>();
-    //     // }
+        // // @todo: Not sure if this needs to be translated since pybin11 should
+        // // already manage the smart pointer properly from the class_ call??
+        // // // Register the GridPtr-to-Python object converter explicitly
+        // // // if it is not already implicitly registered.
+        // // try {
+        // //     py::object testObj{GridPtr()};
+        // // } catch (py::error_already_set&) {
+        // //     PyErr_Clear();
+        // //     py::register_ptr_to_python<GridPtr>();
+        // // }
 
-    //     py::implicitly_convertible<GridPtr, GridBase::Ptr>();
-    //     py::implicitly_convertible<GridPtr, GridBase::ConstPtr>();
-    //     /// @todo Is there a way to implicitly convert GridType references to GridBase
-    //     /// references without wrapping the GridBase class?  The following doesn't compile,
-    //     /// because GridBase has pure virtual functions:
-    //     /// @code
-    //     /// py::implicitly_convertible<GridType&, GridBase&>();
-    //     /// @endcode
+        // py::implicitly_convertible<GridPtr, GridBase::Ptr>();
+        // py::implicitly_convertible<GridPtr, GridBase::ConstPtr>();
+        // /// @todo Is there a way to implicitly convert GridType references to GridBase
+        // /// references without wrapping the GridBase class?  The following doesn't compile,
+        // /// because GridBase has pure virtual functions:
+        // /// @code
+        // /// py::implicitly_convertible<GridType&, GridBase&>();
+        // /// @endcode
 
-    //     // Wrap const and non-const value accessors and expose them
-    //     // as nested classes of the Grid class.
-    //     pyAccessor::AccessorWrap<const GridType>::wrap(m);
-    //     pyAccessor::AccessorWrap<GridType>::wrap(m);
+        // // Wrap const and non-const value accessors and expose them
+        // // as nested classes of the Grid class.
+        // pyAccessor::AccessorWrap<const GridType>::wrap(m);
+        // pyAccessor::AccessorWrap<GridType>::wrap(m);
 
-    //     // Wrap tree value iterators and expose them as nested classes of the Grid class.
-    //     IterWrap<const GridType, ValueOnCIterT>::wrap(m);
-    //     IterWrap<const GridType, ValueOffCIterT>::wrap(m);
-    //     IterWrap<const GridType, ValueAllCIterT>::wrap(m);
-    //     IterWrap<GridType, ValueOnIterT>::wrap(m);
-    //     IterWrap<GridType, ValueOffIterT>::wrap(m);
-    //     IterWrap<GridType, ValueAllIterT>::wrap(m);
+        // // Wrap tree value iterators and expose them as nested classes of the Grid class.
+        // IterWrap<const GridType, ValueOnCIterT>::wrap(m);
+        // IterWrap<const GridType, ValueOffCIterT>::wrap(m);
+        // IterWrap<const GridType, ValueAllCIterT>::wrap(m);
+        // IterWrap<GridType, ValueOnIterT>::wrap(m);
+        // IterWrap<GridType, ValueOffIterT>::wrap(m);
+        // IterWrap<GridType, ValueAllIterT>::wrap(m);
 
-    // } // gridClassScope
+    } // gridClassScope
 
     // Add the Python type object for this grid type to the module-level list.
     py::list gridTypes = m.attr("GridTypes");

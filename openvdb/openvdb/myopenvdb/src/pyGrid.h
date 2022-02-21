@@ -2408,27 +2408,27 @@ exportGrid(py::module_ &m)
                 "produces a high-polygon-count mesh that closely approximates\n"
                 "the isosurface, and 1 produces a lower-polygon-count mesh\n"
                 "with some loss of surface detail.")
-        //     .def_static("createLevelSetFromPolygons",
-        //         &pyGrid::meshToLevelSet<GridType>,
-        //         py::arg("points"),
-        //             py::arg("triangles")=py::none(),
-        //             py::arg("quads")=py::none(),
-        //             py::arg("transform")=py::none(),
-        //             py::arg("halfWidth")=openvdb::LEVEL_SET_HALF_WIDTH,
-        //         ("createLevelSetFromPolygons(points, triangles=None, quads=None,\n"
-        //          "    transform=None, halfWidth="
-        //          + std::to_string(openvdb::LEVEL_SET_HALF_WIDTH) + ") -> "
-        //          + pyGridTypeName + "\n\n"
-        //         "Convert a triangle and/or quad mesh to a narrow-band level set volume.\n"
-        //         "The mesh must form a closed surface, but the surface need not be\n"
-        //         "manifold and may have self intersections and degenerate faces.\n"
-        //         "The mesh is described by a NumPy array of world-space points\n"
-        //         "and NumPy arrays of 3- and 4-tuples of point indices that specify\n"
-        //         "the vertices of the triangles and quadrilaterals that form the mesh.\n"
-        //         "Either the triangle or the quad array may be empty or None.\n"
-        //         "The resulting volume will have the given transform (or the identity\n"
-        //         "transform if no transform is given) and a narrow band width of\n"
-        //         "2 x halfWidth voxels.").c_str())
+            .def_static("createLevelSetFromPolygons",
+                &pyGrid::meshToLevelSet<GridType>,
+                py::arg("points"),
+                    py::arg("triangles")=py::none(),
+                    py::arg("quads")=py::none(),
+                    py::arg("transform")=py::none(),
+                    py::arg("halfWidth")=openvdb::LEVEL_SET_HALF_WIDTH,
+                ("createLevelSetFromPolygons(points, triangles=None, quads=None,\n"
+                 "    transform=None, halfWidth="
+                 + std::to_string(openvdb::LEVEL_SET_HALF_WIDTH) + ") -> "
+                 + pyGridTypeName + "\n\n"
+                "Convert a triangle and/or quad mesh to a narrow-band level set volume.\n"
+                "The mesh must form a closed surface, but the surface need not be\n"
+                "manifold and may have self intersections and degenerate faces.\n"
+                "The mesh is described by a NumPy array of world-space points\n"
+                "and NumPy arrays of 3- and 4-tuples of point indices that specify\n"
+                "the vertices of the triangles and quadrilaterals that form the mesh.\n"
+                "Either the triangle or the quad array may be empty or None.\n"
+                "The resulting volume will have the given transform (or the identity\n"
+                "transform if no transform is given) and a narrow band width of\n"
+                "2 x halfWidth voxels.").c_str())
 
             .def("prune", &pyGrid::prune<GridType>,
                 py::arg("tolerance")=0,

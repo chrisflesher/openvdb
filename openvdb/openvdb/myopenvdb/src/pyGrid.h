@@ -2388,26 +2388,26 @@ exportGrid(py::module_ &m)
         //         + "-dimensional array with values\n"
         //         "from this grid, starting at voxel (i, j, k).").c_str())
 
-        //     .def("convertToQuads",
-        //         &pyGrid::volumeToQuadMesh<GridType>,
-        //         py::arg("isovalue")=0,
-        //         "convertToQuads(isovalue=0) -> points, quads\n\n"
-        //         "Uniformly mesh a scalar grid that has a continuous isosurface\n"
-        //         "at the given isovalue.  Return a NumPy array of world-space\n"
-        //         "points and a NumPy array of 4-tuples of point indices, which\n"
-        //         "specify the vertices of the quadrilaterals that form the mesh.")
-        //     .def("convertToPolygons",
-        //         &pyGrid::volumeToMesh<GridType>,
-        //         py::arg("isovalue")=0, py::arg("adaptivity")=0,
-        //         "convertToPolygons(isovalue=0, adaptivity=0) -> points, triangles, quads\n\n"
-        //         "Adaptively mesh a scalar grid that has a continuous isosurface\n"
-        //         "at the given isovalue.  Return a NumPy array of world-space\n"
-        //         "points and NumPy arrays of 3- and 4-tuples of point indices,\n"
-        //         "which specify the vertices of the triangles and quadrilaterals\n"
-        //         "that form the mesh.  Adaptivity can vary from 0 to 1, where 0\n"
-        //         "produces a high-polygon-count mesh that closely approximates\n"
-        //         "the isosurface, and 1 produces a lower-polygon-count mesh\n"
-        //         "with some loss of surface detail.")
+            .def("convertToQuads",
+                &pyGrid::volumeToQuadMesh<GridType>,
+                py::arg("isovalue")=0,
+                "convertToQuads(isovalue=0) -> points, quads\n\n"
+                "Uniformly mesh a scalar grid that has a continuous isosurface\n"
+                "at the given isovalue.  Return a NumPy array of world-space\n"
+                "points and a NumPy array of 4-tuples of point indices, which\n"
+                "specify the vertices of the quadrilaterals that form the mesh.")
+            .def("convertToPolygons",
+                &pyGrid::volumeToMesh<GridType>,
+                py::arg("isovalue")=0, py::arg("adaptivity")=0,
+                "convertToPolygons(isovalue=0, adaptivity=0) -> points, triangles, quads\n\n"
+                "Adaptively mesh a scalar grid that has a continuous isosurface\n"
+                "at the given isovalue.  Return a NumPy array of world-space\n"
+                "points and NumPy arrays of 3- and 4-tuples of point indices,\n"
+                "which specify the vertices of the triangles and quadrilaterals\n"
+                "that form the mesh.  Adaptivity can vary from 0 to 1, where 0\n"
+                "produces a high-polygon-count mesh that closely approximates\n"
+                "the isosurface, and 1 produces a lower-polygon-count mesh\n"
+                "with some loss of surface detail.")
         //     .def_static("createLevelSetFromPolygons",
         //         &pyGrid::meshToLevelSet<GridType>,
         //         py::arg("points"),
@@ -2430,87 +2430,87 @@ exportGrid(py::module_ &m)
         //         "transform if no transform is given) and a narrow band width of\n"
         //         "2 x halfWidth voxels.").c_str())
 
-        //     .def("prune", &pyGrid::prune<GridType>,
-        //         py::arg("tolerance")=0,
-        //         "prune(tolerance=0)\n\n"
-        //         "Remove nodes whose values all have the same active state\n"
-        //         "and are equal to within a given tolerance.")
-        //     .def("pruneInactive", &pyGrid::pruneInactive<GridType>,
-        //         py::arg("value")=py::none(),
-        //         "pruneInactive(value=None)\n\n"
-        //         "Remove nodes whose values are all inactive and replace them\n"
-        //         "with either background tiles or tiles of the given value\n"
-        //         "(if the value is not None).")
+            .def("prune", &pyGrid::prune<GridType>,
+                py::arg("tolerance")=0,
+                "prune(tolerance=0)\n\n"
+                "Remove nodes whose values all have the same active state\n"
+                "and are equal to within a given tolerance.")
+            .def("pruneInactive", &pyGrid::pruneInactive<GridType>,
+                py::arg("value")=py::none(),
+                "pruneInactive(value=None)\n\n"
+                "Remove nodes whose values are all inactive and replace them\n"
+                "with either background tiles or tiles of the given value\n"
+                "(if the value is not None).")
 
-        //     .def("empty", &GridType::empty,
-        //         "empty() -> bool\n\n"
-        //         "Return True if this grid contains only background voxels.")
-        //     .def("__nonzero__", &pyGrid::notEmpty<GridType>)
+            .def("empty", &GridType::empty,
+                "empty() -> bool\n\n"
+                "Return True if this grid contains only background voxels.")
+            .def("__nonzero__", &pyGrid::notEmpty<GridType>)
 
-        //     .def("clear", &GridType::clear,
-        //         "clear()\n\n"
-        //         "Remove all tiles from this grid and all nodes other than the root node.")
+            .def("clear", &GridType::clear,
+                "clear()\n\n"
+                "Remove all tiles from this grid and all nodes other than the root node.")
 
-        //     .def("merge", &GridType::merge,
-        //         ("merge(" + pyGridTypeName + ")\n\n"
-        //         "Move child nodes from the other grid into this grid wherever\n"
-        //         "those nodes correspond to constant-value tiles in this grid,\n"
-        //         "and replace leaf-level inactive voxels in this grid with\n"
-        //         "corresponding voxels in the other grid that are active.\n\n"
-        //         "Note: this operation always empties the other grid.").c_str())
+            .def("merge", &GridType::merge,
+                ("merge(" + pyGridTypeName + ")\n\n"
+                "Move child nodes from the other grid into this grid wherever\n"
+                "those nodes correspond to constant-value tiles in this grid,\n"
+                "and replace leaf-level inactive voxels in this grid with\n"
+                "corresponding voxels in the other grid that are active.\n\n"
+                "Note: this operation always empties the other grid.").c_str())
 
-        //     .def("mapOn", &pyGrid::mapOn<GridType>,
-        //         py::arg("function"),
-        //         "mapOn(function)\n\n"
-        //         "Iterate over all the active (\"on\") values (tile and voxel)\n"
-        //         "of this grid and replace each value with function(value).\n\n"
-        //         "Example: grid.mapOn(lambda x: x * 2 if x < 0.5 else x)")
+            .def("mapOn", &pyGrid::mapOn<GridType>,
+                py::arg("function"),
+                "mapOn(function)\n\n"
+                "Iterate over all the active (\"on\") values (tile and voxel)\n"
+                "of this grid and replace each value with function(value).\n\n"
+                "Example: grid.mapOn(lambda x: x * 2 if x < 0.5 else x)")
 
-        //     .def("mapOff", &pyGrid::mapOff<GridType>,
-        //         py::arg("function"),
-        //         "mapOff(function)\n\n"
-        //         "Iterate over all the inactive (\"off\") values (tile and voxel)\n"
-        //         "of this grid and replace each value with function(value).\n\n"
-        //         "Example: grid.mapOff(lambda x: x * 2 if x < 0.5 else x)")
+            .def("mapOff", &pyGrid::mapOff<GridType>,
+                py::arg("function"),
+                "mapOff(function)\n\n"
+                "Iterate over all the inactive (\"off\") values (tile and voxel)\n"
+                "of this grid and replace each value with function(value).\n\n"
+                "Example: grid.mapOff(lambda x: x * 2 if x < 0.5 else x)")
 
-        //     .def("mapAll", &pyGrid::mapAll<GridType>,
-        //         py::arg("function"),
-        //         "mapAll(function)\n\n"
-        //         "Iterate over all values (tile and voxel) of this grid\n"
-        //         "and replace each value with function(value).\n\n"
-        //         "Example: grid.mapAll(lambda x: x * 2 if x < 0.5 else x)")
+            .def("mapAll", &pyGrid::mapAll<GridType>,
+                py::arg("function"),
+                "mapAll(function)\n\n"
+                "Iterate over all values (tile and voxel) of this grid\n"
+                "and replace each value with function(value).\n\n"
+                "Example: grid.mapAll(lambda x: x * 2 if x < 0.5 else x)")
 
-        //     .def("combine", &pyGrid::combine<GridType>,
-        //         py::arg("grid"), py::arg("function"),
-        //         "combine(grid, function)\n\n"
-        //         "Compute function(self, other) over all corresponding pairs\n"
-        //         "of values (tile or voxel) of this grid and the other grid\n"
-        //         "and store the result in this grid.\n\n"
-        //         "Note: this operation always empties the other grid.\n\n"
-        //         "Example: grid.combine(otherGrid, lambda a, b: min(a, b))")
+            .def("combine", &pyGrid::combine<GridType>,
+                py::arg("grid"), py::arg("function"),
+                "combine(grid, function)\n\n"
+                "Compute function(self, other) over all corresponding pairs\n"
+                "of values (tile or voxel) of this grid and the other grid\n"
+                "and store the result in this grid.\n\n"
+                "Note: this operation always empties the other grid.\n\n"
+                "Example: grid.combine(otherGrid, lambda a, b: min(a, b))")
 
-        //     //
-        //     // Iterators
-        //     //
-        //     .def("citerOnValues", &pyGrid::IterTraits<GridType, ValueOnCIterT>::begin,
-        //         "citerOnValues() -> iterator\n\n"
-        //         "Return a read-only iterator over this grid's active\ntile and voxel values.")
-        //     .def("citerOffValues", &pyGrid::IterTraits<GridType, ValueOffCIterT>::begin,
-        //         "iterOffValues() -> iterator\n\n"
-        //         "Return a read-only iterator over this grid's inactive\ntile and voxel values.")
-        //     .def("citerAllValues", &pyGrid::IterTraits<GridType, ValueAllCIterT>::begin,
-        //         "iterAllValues() -> iterator\n\n"
-        //         "Return a read-only iterator over all of this grid's\ntile and voxel values.")
+            //
+            // Iterators
+            //
+            .def("citerOnValues", &pyGrid::IterTraits<GridType, ValueOnCIterT>::begin,
+                "citerOnValues() -> iterator\n\n"
+                "Return a read-only iterator over this grid's active\ntile and voxel values.")
+            .def("citerOffValues", &pyGrid::IterTraits<GridType, ValueOffCIterT>::begin,
+                "iterOffValues() -> iterator\n\n"
+                "Return a read-only iterator over this grid's inactive\ntile and voxel values.")
+            .def("citerAllValues", &pyGrid::IterTraits<GridType, ValueAllCIterT>::begin,
+                "iterAllValues() -> iterator\n\n"
+                "Return a read-only iterator over all of this grid's\ntile and voxel values.")
 
-        //     .def("iterOnValues", &pyGrid::IterTraits<GridType, ValueOnIterT>::begin,
-        //         "iterOnValues() -> iterator\n\n"
-        //         "Return a read/write iterator over this grid's active\ntile and voxel values.")
-        //     .def("iterOffValues", &pyGrid::IterTraits<GridType, ValueOffIterT>::begin,
-        //         "iterOffValues() -> iterator\n\n"
-        //         "Return a read/write iterator over this grid's inactive\ntile and voxel values.")
-        //     .def("iterAllValues", &pyGrid::IterTraits<GridType, ValueAllIterT>::begin,
-        //         "iterAllValues() -> iterator\n\n"
-        //         "Return a read/write iterator over all of this grid's\ntile and voxel values.")
+            .def("iterOnValues", &pyGrid::IterTraits<GridType, ValueOnIterT>::begin,
+                "iterOnValues() -> iterator\n\n"
+                "Return a read/write iterator over this grid's active\ntile and voxel values.")
+            .def("iterOffValues", &pyGrid::IterTraits<GridType, ValueOffIterT>::begin,
+                "iterOffValues() -> iterator\n\n"
+                "Return a read/write iterator over this grid's inactive\ntile and voxel values.")
+            .def("iterAllValues", &pyGrid::IterTraits<GridType, ValueAllIterT>::begin,
+                "iterAllValues() -> iterator\n\n"
+                "Return a read/write iterator over all of this grid's\ntile and voxel values.")
 
             ; // py::class_<Grid>
 

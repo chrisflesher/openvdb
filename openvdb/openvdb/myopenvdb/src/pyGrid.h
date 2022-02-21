@@ -2245,119 +2245,119 @@ exportGrid(py::module_ &m)
                 "Return an accessor that provides random read-only access\n"
                 "to this grid's voxels.").c_str())
 
-        //     //
-        //     // Metadata
-        //     //
-        //     // .def_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
-        //     //     "dict of this grid's metadata\n\n"
-        //     //     "Setting this attribute replaces all of this grid's metadata,\n"
-        //     //     "but mutating it in place has no effect on the grid, since\n"
-        //     //     "the value of this attribute is a only a copy of the metadata.\n"
-        //     //     "Use either indexing or updateMetadata() to mutate metadata in place.")
-        //     // .def("updateMetadata", &pyGrid::updateMetadata,
-        //     //     "updateMetadata(dict)\n\n"
-        //     //     "Add metadata to this grid, replacing any existing items\n"
-        //     //     "having the same names as the new items.")
+            //
+            // Metadata
+            //
+            // .def_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
+            //     "dict of this grid's metadata\n\n"
+            //     "Setting this attribute replaces all of this grid's metadata,\n"
+            //     "but mutating it in place has no effect on the grid, since\n"
+            //     "the value of this attribute is a only a copy of the metadata.\n"
+            //     "Use either indexing or updateMetadata() to mutate metadata in place.")
+            // .def("updateMetadata", &pyGrid::updateMetadata,
+            //     "updateMetadata(dict)\n\n"
+            //     "Add metadata to this grid, replacing any existing items\n"
+            //     "having the same names as the new items.")
 
-        //     // .def("addStatsMetadata", &GridType::addStatsMetadata,
-        //     //     "addStatsMetadata()\n\n"
-        //     //     "Add metadata to this grid comprising the current values\n"
-        //     //     "of statistics like the active voxel count and bounding box.\n"
-        //     //     "(This metadata is not automatically kept up-to-date with\n"
-        //     //     "changes to this grid.)")
-        //     // .def("getStatsMetadata", &pyGrid::getStatsMetadata,
-        //     //     "getStatsMetadata() -> dict\n\n"
-        //     //     "Return a (possibly empty) dict containing just the metadata\n"
-        //     //     "that was added to this grid with addStatsMetadata().")
+            // .def("addStatsMetadata", &GridType::addStatsMetadata,
+            //     "addStatsMetadata()\n\n"
+            //     "Add metadata to this grid comprising the current values\n"
+            //     "of statistics like the active voxel count and bounding box.\n"
+            //     "(This metadata is not automatically kept up-to-date with\n"
+            //     "changes to this grid.)")
+            // .def("getStatsMetadata", &pyGrid::getStatsMetadata,
+            //     "getStatsMetadata() -> dict\n\n"
+            //     "Return a (possibly empty) dict containing just the metadata\n"
+            //     "that was added to this grid with addStatsMetadata().")
 
-        //     // .def("__getitem__", &pyGrid::getMetadata,
-        //     //     "__getitem__(name) -> value\n\n"
-        //     //     "Return the metadata value associated with the given name.")
-        //     // .def("__setitem__", &pyGrid::setMetadata,
-        //     //     "__setitem__(name, value)\n\n"
-        //     //     "Add metadata to this grid, replacing any existing item having\n"
-        //     //     "the same name as the new item.")
-        //     // .def("__delitem__", &pyGrid::removeMetadata,
-        //     //     "__delitem__(name)\n\n"
-        //     //     "Remove the metadata with the given name.")
-        //     // .def("__contains__", &pyGrid::hasMetadata,
-        //     //     "__contains__(name) -> bool\n\n"
-        //     //     "Return True if this grid contains metadata with the given name.")
-        //     // .def("__iter__", &pyGrid::getMetadataKeys,
-        //     //     "__iter__() -> iterator\n\n"
-        //     //     "Return an iterator over this grid's metadata keys.")
-        //     // .def("iterkeys", &pyGrid::getMetadataKeys,
-        //     //     "iterkeys() -> iterator\n\n"
-        //     //     "Return an iterator over this grid's metadata keys.")
+            // .def("__getitem__", &pyGrid::getMetadata,
+            //     "__getitem__(name) -> value\n\n"
+            //     "Return the metadata value associated with the given name.")
+            // .def("__setitem__", &pyGrid::setMetadata,
+            //     "__setitem__(name, value)\n\n"
+            //     "Add metadata to this grid, replacing any existing item having\n"
+            //     "the same name as the new item.")
+            // .def("__delitem__", &pyGrid::removeMetadata,
+            //     "__delitem__(name)\n\n"
+            //     "Remove the metadata with the given name.")
+            // .def("__contains__", &pyGrid::hasMetadata,
+            //     "__contains__(name) -> bool\n\n"
+            //     "Return True if this grid contains metadata with the given name.")
+            // .def("__iter__", &pyGrid::getMetadataKeys,
+            //     "__iter__() -> iterator\n\n"
+            //     "Return an iterator over this grid's metadata keys.")
+            // .def("iterkeys", &pyGrid::getMetadataKeys,
+            //     "iterkeys() -> iterator\n\n"
+            //     "Return an iterator over this grid's metadata keys.")
 
-        //     // .def_property("saveFloatAsHalf",
-        //     //     &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,
-        //     //     "if True, write floating-point voxel values as 16-bit half floats")
+            // .def_property("saveFloatAsHalf",
+            //     &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,
+            //     "if True, write floating-point voxel values as 16-bit half floats")
 
-        //     //
-        //     // Statistics
-        //     //
-        //     .def("memUsage", &GridType::memUsage,
-        //         "memUsage() -> int\n\n"
-        //         "Return the memory usage of this grid in bytes.")
+            //
+            // Statistics
+            //
+            .def("memUsage", &GridType::memUsage,
+                "memUsage() -> int\n\n"
+                "Return the memory usage of this grid in bytes.")
 
-        //     .def("evalLeafBoundingBox", &pyGrid::evalLeafBoundingBox<GridType>,
-        //         "evalLeafBoundingBox() -> xyzMin, xyzMax\n\n"
-        //         "Return the coordinates of opposite corners of the axis-aligned\n"
-        //         "bounding box of all leaf nodes.")
-        //     .def("evalLeafDim", &pyGrid::evalLeafDim<GridType>,
-        //         "evalLeafDim() -> x, y, z\n\n"
-        //         "Return the dimensions of the axis-aligned bounding box\n"
-        //         "of all leaf nodes.")
+            .def("evalLeafBoundingBox", &pyGrid::evalLeafBoundingBox<GridType>,
+                "evalLeafBoundingBox() -> xyzMin, xyzMax\n\n"
+                "Return the coordinates of opposite corners of the axis-aligned\n"
+                "bounding box of all leaf nodes.")
+            .def("evalLeafDim", &pyGrid::evalLeafDim<GridType>,
+                "evalLeafDim() -> x, y, z\n\n"
+                "Return the dimensions of the axis-aligned bounding box\n"
+                "of all leaf nodes.")
 
-        //     .def("evalActiveVoxelBoundingBox", &pyGrid::evalActiveVoxelBoundingBox<GridType>,
-        //         "evalActiveVoxelBoundingBox() -> xyzMin, xyzMax\n\n"
-        //         "Return the coordinates of opposite corners of the axis-aligned\n"
-        //         "bounding box of all active voxels.")
-        //     .def("evalActiveVoxelDim", &GridType::evalActiveVoxelDim,
-        //         "evalActiveVoxelDim() -> x, y, z\n\n"
-        //         "Return the dimensions of the axis-aligned bounding box of all\n"
-        //         "active voxels.")
+            .def("evalActiveVoxelBoundingBox", &pyGrid::evalActiveVoxelBoundingBox<GridType>,
+                "evalActiveVoxelBoundingBox() -> xyzMin, xyzMax\n\n"
+                "Return the coordinates of opposite corners of the axis-aligned\n"
+                "bounding box of all active voxels.")
+            .def("evalActiveVoxelDim", &GridType::evalActiveVoxelDim,
+                "evalActiveVoxelDim() -> x, y, z\n\n"
+                "Return the dimensions of the axis-aligned bounding box of all\n"
+                "active voxels.")
 
-        //     .def_property_readonly("treeDepth", &pyGrid::treeDepth<GridType>,
-        //         "depth of this grid's tree from root node to leaf node")
-        //     .def("nodeLog2Dims", &pyGrid::getNodeLog2Dims<GridType>,
-        //         "list of Log2Dims of the nodes of this grid's tree\n"
-        //         "in order from root to leaf")
+            .def_property_readonly("treeDepth", &pyGrid::treeDepth<GridType>,
+                "depth of this grid's tree from root node to leaf node")
+            .def("nodeLog2Dims", &pyGrid::getNodeLog2Dims<GridType>,
+                "list of Log2Dims of the nodes of this grid's tree\n"
+                "in order from root to leaf")
 
-        //     .def("leafCount", &pyGrid::leafCount<GridType>,
-        //         "leafCount() -> int\n\n"
-        //         "Return the number of leaf nodes in this grid's tree.")
-        //     .def("nonLeafCount", &pyGrid::nonLeafCount<GridType>,
-        //         "nonLeafCount() -> int\n\n"
-        //         "Return the number of non-leaf nodes in this grid's tree.")
+            .def("leafCount", &pyGrid::leafCount<GridType>,
+                "leafCount() -> int\n\n"
+                "Return the number of leaf nodes in this grid's tree.")
+            .def("nonLeafCount", &pyGrid::nonLeafCount<GridType>,
+                "nonLeafCount() -> int\n\n"
+                "Return the number of non-leaf nodes in this grid's tree.")
 
-        //     .def("activeVoxelCount", &GridType::activeVoxelCount,
-        //         "activeVoxelCount() -> int\n\n"
-        //         "Return the number of active voxels in this grid.")
-        //     .def("activeLeafVoxelCount", &pyGrid::activeLeafVoxelCount<GridType>,
-        //         "activeLeafVoxelCount() -> int\n\n"
-        //         "Return the number of active voxels that are stored\n"
-        //         "in the leaf nodes of this grid's tree.")
+            .def("activeVoxelCount", &GridType::activeVoxelCount,
+                "activeVoxelCount() -> int\n\n"
+                "Return the number of active voxels in this grid.")
+            .def("activeLeafVoxelCount", &pyGrid::activeLeafVoxelCount<GridType>,
+                "activeLeafVoxelCount() -> int\n\n"
+                "Return the number of active voxels that are stored\n"
+                "in the leaf nodes of this grid's tree.")
 
-        //     .def("evalMinMax", &pyGrid::evalMinMax<GridType>,
-        //         "evalMinMax() -> min, max\n\n"
-        //         "Return the minimum and maximum active values in this grid.")
+            .def("evalMinMax", &pyGrid::evalMinMax<GridType>,
+                "evalMinMax() -> min, max\n\n"
+                "Return the minimum and maximum active values in this grid.")
 
-        //     .def("getIndexRange", &pyGrid::getIndexRange<GridType>,
-        //         "getIndexRange() -> min, max\n\n"
-        //         "Return the minimum and maximum coordinates that are represented\n"
-        //         "in this grid.  These might include background voxels.")
-        //     //.def("expand", &pyGrid::expandIndexRange<GridType>,
-        //     //    py::arg("xyz"),
-        //     //    "expand(xyz)\n\n"
-        //     //    "Expand this grid's index range to include the given coordinates.")
+            .def("getIndexRange", &pyGrid::getIndexRange<GridType>,
+                "getIndexRange() -> min, max\n\n"
+                "Return the minimum and maximum coordinates that are represented\n"
+                "in this grid.  These might include background voxels.")
+            // .def("expand", &pyGrid::expandIndexRange<GridType>,
+            //    py::arg("xyz"),
+            //    "expand(xyz)\n\n"
+            //    "Expand this grid's index range to include the given coordinates.")
 
-        //     .def("info", &pyGrid::gridInfo,
-        //         py::arg("verbosity")=1,
-        //         "info(verbosity=1) -> str\n\n"
-        //         "Return a string containing information about this grid\n"
-        //         "with a specified level of verbosity.\n")
+            .def("info", &pyGrid::gridInfo,
+                py::arg("verbosity")=1,
+                "info(verbosity=1) -> str\n\n"
+                "Return a string containing information about this grid\n"
+                "with a specified level of verbosity.\n")
 
         //     //
         //     // Tools

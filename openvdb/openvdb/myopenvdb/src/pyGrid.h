@@ -2037,128 +2037,85 @@ private:
 ////////////////////////////////////////
 
 
+
+
+// /// Return a tuple representing the state of the given Grid.
 // template<typename GridT>
-// struct PickleSuite: public py::pickle_suite
+// py::tuple getstate(const py::object& gridObj)
 // {
 //     using GridPtrT = typename GridT::Ptr;
 
-//     /// Return @c true, indicating that this pickler preserves a Grid's __dict__.
-//     static bool getstate_manages_dict() { return true; }
-
-//     /// Return a tuple representing the state of the given Grid.
-//     static py::tuple getstate(py::object gridObj)
-//     {
-//         py::tuple state;
-
-//         // Extract a Grid from the Python object.
-//         GridPtrT grid;
-//         try {
-//             GridPtrT grid = py::cast<GridPtrT>(gridObj);
-//         } catch (py::cast_error) {
-//             return;
-//         }
-
-//         if (grid) {
-//             // Serialize the Grid to a string.
-//             std::ostringstream ostr(std::ios_base::binary);
-//             {
-//                 openvdb::io::Stream strm(ostr);
-//                 strm.setGridStatsMetadataEnabled(false);
-//                 strm.write(openvdb::GridPtrVec(1, grid));
-//             }
-//             // Construct a state tuple comprising the Python object's __dict__
-//             // and the serialized Grid.
-// #if PY_MAJOR_VERSION >= 3
-//             // Convert the byte string to a "bytes" sequence.
-//             const std::string s = ostr.str();
-//             py::object bytesObj = pyutil::pyBorrow(PyBytes_FromStringAndSize(s.data(), s.size()));
-// #else
-//             py::str bytesObj(ostr.str());
-// #endif
-//             state = py::make_tuple(gridObj.attr("__dict__"), bytesObj);
-//         }
-//         return state;
+//     // Extract a Grid from the Python object.
+//     GridPtrT grid;
+//     try {
+//         grid = py::cast<GridPtrT>(gridObj);
+//     } catch (py::cast_error) {
+//         throw std::runtime_error("Invalid state!");
 //     }
 
-//     /// Restore the given Grid to a saved state.
-//     static void setstate(py::object gridObj, py::object stateObj)
+//     // Serialize the Grid to a string.
+//     std::ostringstream ostr(std::ios_base::binary);
 //     {
-//         GridPtrT grid;
-//         try {
-//             grid = py::cast<GridPtrT>(gridObj);
-//         } catch (py::cast_error) {
-//             return;
-//         }
-//         if (!grid) return;
-
-//         py::tuple state;
-//         try {
-//             state = py::cast<py::tuple>(stateObj);
-//         } catch (py::cast_error) {
-//             return;
-//         }
-//         bool badState = (py::len(state) != 2);
-
-//         if (!badState) {
-//             // Restore the object's __dict__.
-//             try {
-//                 py::dict x = py::cast<py::dict>(state[0]);
-//                 py::dict d = py::cast<py::dict>(gridObj.attr("__dict__"))();
-//                 d.update(x);
-//             } catch (py::cast_error) {
-//                 badState = true;
-//             }
-//         }
-
-//         std::string serialized;
-//         if (!badState) {
-//             // Extract the sequence containing the serialized Grid.
-//             py::object bytesObj = state[1];
-// #if PY_MAJOR_VERSION >= 3
-//             badState = true;
-//             if (PyBytes_Check(bytesObj.ptr())) {
-//                 // Convert the "bytes" sequence to a byte string.
-//                 char* buf = nullptr;
-//                 Py_ssize_t length = 0;
-//                 if (-1 != PyBytes_AsStringAndSize(bytesObj.ptr(), &buf, &length)) {
-//                     if (buf != nullptr && length > 0) {
-//                         serialized.assign(buf, buf + length);
-//                         badState = false;
-//                     }
-//                 }
-//             }
-// #else
-//             try {
-//                 serialized = py::cast<std::string>(bytesObj);
-//             } catch (py::cast_error) {
-//                 badState = true;
-//             }
-// #endif
-//         }
-
-//         if (badState) {
-//             PyErr_SetObject(PyExc_ValueError,
-//                 PyUnicode_FromFormat("expected (dict, bytes) tuple in call to __setstate__; found %s",
-//                     stateObj.attr("__repr__")()));
-//             py::error_already_set();
-//         }
-
-//         // Restore the internal state of the C++ object.
-//         GridPtrVecPtr grids;
-//         {
-//             std::istringstream istr(serialized, std::ios_base::binary);
-//             io::Stream strm(istr);
-//             grids = strm.getGrids(); // (note: file-level metadata is ignored)
-//         }
-//         if (grids && !grids->empty()) {
-//             if (GridPtrT savedGrid = gridPtrCast<GridT>((*grids)[0])) {
-//                 grid->MetaMap::operator=(*savedGrid); ///< @todo add a Grid::setMetadata() method?
-//                 grid->setTransform(savedGrid->transformPtr());
-//                 grid->setTree(savedGrid->treePtr());
-//             }
-//         }
+//         openvdb::io::Stream strm(ostr);
+//         strm.setGridStatsMetadataEnabled(false);
+//         strm.write(openvdb::GridPtrVec(1, grid));
 //     }
-// }; // struct PickleSuite
+//     // Construct a state tuple comprising the Python object's __dict__
+//     // and the serialized Grid.=
+//     py::bytes bytesObj(ostr.str());
+//     return py::make_tuple(bytesObj, gridObj.attr("__dict__"));
+// }
+
+// /// Restore the given Grid to a saved state.
+// template<typename GridT>
+// std::pair<GridT, py::dict> setstate(py::tuple state)
+// {
+//     using GridPtrT = typename GridT::Ptr;
+
+//     GridT grid;
+
+//     // bool badState = (py::len(state) != 2);
+
+//     // std::string serialized;
+//     // if (!badState) {
+//     //     // Extract the sequence containing the serialized Grid.
+//     //     py::object bytesObj = state[1];
+//     //     badState = true;
+//     //     if (PyBytes_Check(bytesObj.ptr())) {
+//     //         // Convert the "bytes" sequence to a byte string.
+//     //         char* buf = nullptr;
+//     //         Py_ssize_t length = 0;
+//     //         if (-1 != PyBytes_AsStringAndSize(bytesObj.ptr(), &buf, &length)) {
+//     //             if (buf != nullptr && length > 0) {
+//     //                 serialized.assign(buf, buf + length);
+//     //                 badState = false;
+//     //             }
+//     //         }
+//     //     }
+//     // }
+
+//     // if (badState) {
+//     //     throw py::value_error(
+//     //         PyUnicode_FromFormat("expected (dict, bytes) tuple in call to __setstate__; found %s",
+//     //             stateObj.attr("__repr__")()));
+//     // }
+
+//     // // Restore the internal state of the C++ object.
+//     // GridPtrVecPtr grids;
+//     // {
+//     //     std::istringstream istr(serialized, std::ios_base::binary);
+//     //     io::Stream strm(istr);
+//     //     grids = strm.getGrids(); // (note: file-level metadata is ignored)
+//     // }
+//     // if (grids && !grids->empty()) {
+//     //     if (GridPtrT savedGrid = gridPtrCast<GridT>((*grids)[0])) {
+//     //         grid->MetaMap::operator=(*savedGrid); ///< @todo add a Grid::setMetadata() method?
+//     //         grid->setTransform(savedGrid->transformPtr());
+//     //         grid->setTree(savedGrid->treePtr());
+//     //     }
+//     // }
+//     return std::make_pair(grid, py::cast<py::dict>(state[1]));
+// }
 
 
 ////////////////////////////////////////
@@ -2202,7 +2159,21 @@ exportGrid(py::module_ &m)
                 ("deepCopy() -> " + pyGridTypeName + "\n\n"
                 "Return a deep copy of this grid.\n").c_str())
 
-            // .def_pickle(pyGrid::PickleSuite<GridType>())
+            .def(py::pickle(
+                [](const py::object &self) {
+                    return py::make_tuple(
+                        self.attr("state"), self.attr("__dict__"));
+                },
+                [](const py::tuple &t) {
+                    if (t.size() != 1) {
+                        throw std::runtime_error("Invalid state!");
+                    }
+
+                    GridType cpp_state;
+
+                    auto py_state = t[1].cast<py::dict>();
+                    return std::make_pair(cpp_state, py_state);
+                }))
 
             .def("sharesWith", &pyGrid::sharesWith<GridType>,
                 ("sharesWith(" + pyGridTypeName + ") -> bool\n\n"
@@ -2525,14 +2496,14 @@ exportGrid(py::module_ &m)
         // //     py::register_ptr_to_python<GridPtr>();
         // // }
 
-        // py::implicitly_convertible<GridPtr, GridBase::Ptr>();
-        // py::implicitly_convertible<GridPtr, GridBase::ConstPtr>();
-        // /// @todo Is there a way to implicitly convert GridType references to GridBase
-        // /// references without wrapping the GridBase class?  The following doesn't compile,
-        // /// because GridBase has pure virtual functions:
-        // /// @code
-        // /// py::implicitly_convertible<GridType&, GridBase&>();
-        // /// @endcode
+        py::implicitly_convertible<GridPtr, GridBase::Ptr>();
+        py::implicitly_convertible<GridPtr, GridBase::ConstPtr>();
+        /// @todo Is there a way to implicitly convert GridType references to GridBase
+        /// references without wrapping the GridBase class?  The following doesn't compile,
+        /// because GridBase has pure virtual functions:
+        /// @code
+        /// py::implicitly_convertible<GridType&, GridBase&>();
+        /// @endcode
 
         // // Wrap const and non-const value accessors and expose them
         // // as nested classes of the Grid class.

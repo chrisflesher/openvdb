@@ -23,7 +23,7 @@ set(OPENVDB_PYTHON_MODULE_SOURCE_FILES
 #  src/pyIntGrid.cc
 #  src/pyPointGrid.cc
 #  src/pyPointGrid.cc
-#  src/pyTransform.cc
+  src/pyTransform.cc
 #  src/pyVec3Grid.cc
 )
 

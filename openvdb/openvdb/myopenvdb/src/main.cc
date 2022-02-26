@@ -7,6 +7,7 @@ namespace py = pybind11;
 
 
 void exportFloatGrid(py::module_ &m);
+void exportTransform(py::module_ &m);
 
 int add(int i, int j) {
     return i + j;
@@ -27,6 +28,7 @@ PYBIND11_MODULE(_core, m) {
     )pbdoc";
 
     exportFloatGrid(m);
+    exportTransform(m);
 
     m.def("add", &add, R"pbdoc(
         Add two numbers

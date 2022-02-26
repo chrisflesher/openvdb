@@ -2487,10 +2487,10 @@ exportGrid(py::module_ &m)
         /// py::implicitly_convertible<GridType&, GridBase&>();
         /// @endcode
 
-        // // Wrap const and non-const value accessors and expose them
-        // // as nested classes of the Grid class.
-        // pyAccessor::AccessorWrap<const GridType>::wrap(m);
-        // pyAccessor::AccessorWrap<GridType>::wrap(m);
+        // Wrap const and non-const value accessors and expose them
+        // as nested classes of the Grid class.
+        pyAccessor::AccessorWrap<const GridType>::wrap(m);
+        pyAccessor::AccessorWrap<GridType>::wrap(m);
 
         // // Wrap tree value iterators and expose them as nested classes of the Grid class.
         // IterWrap<const GridType, ValueOnCIterT>::wrap(m);

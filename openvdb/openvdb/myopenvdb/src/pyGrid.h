@@ -1965,8 +1965,8 @@ public:
     {
         const std::string
             gridClassName = pyutil::GridTraits<typename std::remove_const<GridT>::type>::name(),
-            iterClassName = /*gridClassName +*/ Traits::name(),
-            valueClassName = /*gridClassName +*/ "Value";
+            iterClassName = gridClassName + Traits::name(),
+            valueClassName = gridClassName + Traits::name() + "Value";
 
         py::class_<IterWrap>(m,
             iterClassName.c_str(),
@@ -2492,11 +2492,11 @@ exportGrid(py::module_ &m)
 
         // Wrap tree value iterators and expose them as nested classes of the Grid class.
         IterWrap<const GridType, ValueOnCIterT>::wrap(m);
-        // IterWrap<const GridType, ValueOffCIterT>::wrap(m);
-        // IterWrap<const GridType, ValueAllCIterT>::wrap(m);
-        // IterWrap<GridType, ValueOnIterT>::wrap(m);
-        // IterWrap<GridType, ValueOffIterT>::wrap(m);
-        // IterWrap<GridType, ValueAllIterT>::wrap(m);
+        IterWrap<const GridType, ValueOffCIterT>::wrap(m);
+        IterWrap<const GridType, ValueAllCIterT>::wrap(m);
+        IterWrap<GridType, ValueOnIterT>::wrap(m);
+        IterWrap<GridType, ValueOffIterT>::wrap(m);
+        IterWrap<GridType, ValueAllIterT>::wrap(m);
 
     } // gridClassScope
 

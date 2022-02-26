@@ -2241,9 +2241,9 @@ exportGrid(py::module_ &m)
             //     "iterkeys() -> iterator\n\n"
             //     "Return an iterator over this grid's metadata keys.")
 
-            // .def_property("saveFloatAsHalf",
-            //     &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,
-            //     "if True, write floating-point voxel values as 16-bit half floats")
+            .def_property("saveFloatAsHalf",
+                &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,
+                "if True, write floating-point voxel values as 16-bit half floats")
 
             //
             // Statistics

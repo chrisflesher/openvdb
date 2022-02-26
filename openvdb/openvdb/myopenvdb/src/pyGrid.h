@@ -2478,8 +2478,8 @@ exportGrid(py::module_ &m)
         // //     py::register_ptr_to_python<GridPtr>();
         // // }
 
-        py::implicitly_convertible<GridPtr, GridBase::Ptr>();
-        py::implicitly_convertible<GridPtr, GridBase::ConstPtr>();
+        // py::implicitly_convertible<GridPtr, GridBase::Ptr>();
+        // py::implicitly_convertible<GridPtr, GridBase::ConstPtr>();
         /// @todo Is there a way to implicitly convert GridType references to GridBase
         /// references without wrapping the GridBase class?  The following doesn't compile,
         /// because GridBase has pure virtual functions:

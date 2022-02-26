@@ -965,9 +965,7 @@ public:
                 copyToArray(); // copy data from the grid to the array
             }
         } catch (openvdb::TypeError&) {
-            PyErr_Format(PyExc_TypeError,
-                PyUnicode_FromFormat("unsupported NumPy data type %s", mArrayTypeName.c_str());
-            py::error_already_set();
+            throw py::type_error("unsupported NumPy data type");
         }
     }
 
@@ -2492,8 +2490,8 @@ exportGrid(py::module_ &m)
         pyAccessor::AccessorWrap<const GridType>::wrap(m);
         pyAccessor::AccessorWrap<GridType>::wrap(m);
 
-        // // Wrap tree value iterators and expose them as nested classes of the Grid class.
-        // IterWrap<const GridType, ValueOnCIterT>::wrap(m);
+        // Wrap tree value iterators and expose them as nested classes of the Grid class.
+        IterWrap<const GridType, ValueOnCIterT>::wrap(m);
         // IterWrap<const GridType, ValueOffCIterT>::wrap(m);
         // IterWrap<const GridType, ValueAllCIterT>::wrap(m);
         // IterWrap<GridType, ValueOnIterT>::wrap(m);

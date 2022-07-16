@@ -1,32 +1,32 @@
 // Copyright Contributors to the OpenVDB Project
 // SPDX-License-Identifier: MPL-2.0
 
-#include <iostream> // must be included before python on macos
-#include <cstring> // for strncmp(), strrchr(), etc.
-#include <limits>
-#include <string>
-#include <utility> // for std::make_pair()
+// #include <iostream> // must be included before python on macos
+// #include <cstring> // for strncmp(), strrchr(), etc.
+// #include <limits>
+// #include <string>
+// #include <utility> // for std::make_pair()
 #include <pybind11/pybind11.h>
-#include "openvdb/openvdb.h"
-#include "pyopenvdb.h"
-#include "pyGrid.h"
-#include "pyutil.h"
+// #include "openvdb/openvdb.h"
+// #include "pyopenvdb.h"
+// #include "pyGrid.h"
+// #include "pyutil.h"
 
 namespace py = pybind11;
 
 
 // Forward declarations
 void exportTransform(py::module_ &m);
-void exportMetadata(py::module_ &m);
+// void exportMetadata(py::module_ &m);
 void exportFloatGrid(py::module_ &m);
-void exportIntGrid(py::module_ &m);
-void exportVec3Grid(py::module_ &m);
-void exportPointGrid(py::module_ &m);
+// void exportIntGrid(py::module_ &m);
+// void exportVec3Grid(py::module_ &m);
+// void exportPointGrid(py::module_ &m);
 
 
-namespace _openvdbmodule {
+// namespace _openvdbmodule {
 
-using namespace openvdb;
+// using namespace openvdb;
 
 
 // /// Helper class to convert between a Python numeric sequence
@@ -781,21 +781,21 @@ using namespace openvdb;
 //     }
 // };
 
-} // namespace _openvdbmodule
+// } // namespace _openvdbmodule
 
 
 ////////////////////////////////////////
 
 
-#ifdef DWA_OPENVDB
-#define PY_OPENVDB_MODULE_NAME  _openvdb
-extern "C" { void init_openvdb(); }
-#else
-#define PY_OPENVDB_MODULE_NAME  pyopenvdb
-extern "C" { void initpyopenvdb(); }
-#endif
+// #ifdef DWA_OPENVDB
+// #define PY_OPENVDB_MODULE_NAME  _openvdb
+// extern "C" { void init_openvdb(); }
+// #else
+// #define PY_OPENVDB_MODULE_NAME  pyopenvdb
+// extern "C" { void initpyopenvdb(); }
+// #endif
 
-PYBIND11_MODULE(PY_OPENVDB_MODULE_NAME, m)
+PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
 {
     // // Don't auto-generate ugly, C++-style function signatures.
     // py::docstring_options docOptions;
@@ -815,10 +815,10 @@ PYBIND11_MODULE(PY_OPENVDB_MODULE_NAME, m)
 // #endif
 // #endif
 
-    using namespace openvdb::OPENVDB_VERSION_NAME;
+    // using namespace openvdb::OPENVDB_VERSION_NAME;
 
-    // Initialize OpenVDB.
-    initialize();
+    // // Initialize OpenVDB.
+    // initialize();
 
     // _openvdbmodule::CoordConverter::registerConverter();
 

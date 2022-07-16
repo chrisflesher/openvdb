@@ -18,7 +18,7 @@ endif()
 find_package(pybind11 CONFIG REQUIRED)
 
 set(OPENVDB_PYTHON_MODULE_SOURCE_FILES
-  src/main.cc
+  src/pyOpenVDBModule.cc
   src/pyFloatGrid.cc
 #  src/pyIntGrid.cc
 #  src/pyPointGrid.cc

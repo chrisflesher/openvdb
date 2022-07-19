@@ -25,17 +25,17 @@ pyBorrow(PyObject* obj)
 }
 
 
-// /// @brief Given a @c PyObject that implements the sequence protocol
-// /// (e.g., a @c PyListObject), return the value of type @c ValueT
-// /// at index @a idx in the sequence.
-// /// @details Raise a Python @c TypeError exception if the value
-// /// at index @a idx is not convertible to type @c ValueT.
-// template<typename ValueT>
-// inline ValueT
-// getSequenceItem(PyObject* obj, int idx)
-// {
-//     return py::cast<ValueT>(pyBorrow(obj)[idx]);
-// }
+/// @brief Given a @c PyObject that implements the sequence protocol
+/// (e.g., a @c PyListObject), return the value of type @c ValueT
+/// at index @a idx in the sequence.
+/// @details Raise a Python @c TypeError exception if the value
+/// at index @a idx is not convertible to type @c ValueT.
+template<typename ValueT>
+inline ValueT
+getSequenceItem(PyObject* obj, int idx)
+{
+    return py::cast<ValueT>(PySequence_GetItem(obj, idx));
+}
 
 
 ////////////////////////////////////////

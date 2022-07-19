@@ -37,23 +37,23 @@ namespace pybind11 { namespace detail {
 
         bool load(handle src, bool) {
             PyObject *obj = src.ptr();
-            value.reset(1, 2, 3);
-            // switch (PySequence_Length(obj)) {
-            // case 1:
-            //     value.reset(pyutil::getSequenceItem<openvdb::Int32>(obj, 0));
-            //     break;
-            // case 3:
-            //     value.reset(
-            //         pyutil::getSequenceItem<openvdb::Int32>(obj, 0),
-            //         pyutil::getSequenceItem<openvdb::Int32>(obj, 1),
-            //         pyutil::getSequenceItem<openvdb::Int32>(obj, 2));
-            //     break;
-            // default:
-            //     PyErr_Format(PyExc_ValueError,
-            //         "expected a sequence of three integers");
-            //     py::throw_error_already_set();
-            //     break;
-            // }
+            if (!PySequence_Check(obj)) {
+                return false;
+            }
+            switch (PySequence_Length(obj)) {
+            case 1:
+                value.reset(pyutil::getSequenceItem<openvdb::Int32>(obj, 0));
+                break;
+            case 3:
+                value.reset(
+                    pyutil::getSequenceItem<openvdb::Int32>(obj, 0),
+                    pyutil::getSequenceItem<openvdb::Int32>(obj, 1),
+                    pyutil::getSequenceItem<openvdb::Int32>(obj, 2));
+                break;
+            default:
+                throw py::value_error("expected a sequence of three integers");
+                break;
+            }
             return !(PyErr_Occurred());
         }
 

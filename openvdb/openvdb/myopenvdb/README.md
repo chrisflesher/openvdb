@@ -5,5 +5,4 @@ To view changes from master:
 git difftool 82de87b3368cf29173132bcb34dd37fd1551113
 
 To run unit tests:
-cd test
-python3 TestOpenVDB.py
+python3 test/TestOpenVDB.py

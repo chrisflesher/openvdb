@@ -1,18 +1,20 @@
 // Copyright Contributors to the OpenVDB Project
 // SPDX-License-Identifier: MPL-2.0
 
-// #include <iostream> // must be included before python on macos
+#include <iostream> // must be included before python on macos
 // #include <cstring> // for strncmp(), strrchr(), etc.
 // #include <limits>
 // #include <string>
 // #include <utility> // for std::make_pair()
 #include <pybind11/pybind11.h>
-// #include "openvdb/openvdb.h"
+#include "openvdb/openvdb.h"
 // #include "pyopenvdb.h"
 // #include "pyGrid.h"
-// #include "pyutil.h"
+#include "pyutil.h"
 
 namespace py = pybind11;
+
+using namespace openvdb;
 
 
 // Forward declarations
@@ -24,12 +26,54 @@ void exportFloatGrid(py::module_ &m);
 // void exportPointGrid(py::module_ &m);
 
 
+void print(openvdb::Coord xyz) {
+    std::cout << xyz[0] << " " << xyz[1] << " " << xyz[2] << std::endl;
+}
+
+namespace pybind11 { namespace detail {
+    template <> struct type_caster<openvdb::Coord> {
+    public:
+        PYBIND11_TYPE_CASTER(openvdb::Coord, const_name("Coord"));
+
+        bool load(handle src, bool) {
+            PyObject *obj = src.ptr();
+            value.reset(1, 2, 3);
+            // switch (PySequence_Length(obj)) {
+            // case 1:
+            //     value.reset(pyutil::getSequenceItem<openvdb::Int32>(obj, 0));
+            //     break;
+            // case 3:
+            //     value.reset(
+            //         pyutil::getSequenceItem<openvdb::Int32>(obj, 0),
+            //         pyutil::getSequenceItem<openvdb::Int32>(obj, 1),
+            //         pyutil::getSequenceItem<openvdb::Int32>(obj, 2));
+            //     break;
+            // default:
+            //     PyErr_Format(PyExc_ValueError,
+            //         "expected a sequence of three integers");
+            //     py::throw_error_already_set();
+            //     break;
+            // }
+            return !(PyErr_Occurred());
+        }
+
+        static handle cast(openvdb::Coord src, return_value_policy /* policy */, handle /* parent */) {
+            py::object obj = py::make_tuple(src[0], src[1], src[2]);
+            Py_INCREF(obj.ptr());
+                ///< @todo is this the right way to ensure that the object
+                ///< doesn't get freed on exit?
+            return obj.ptr();
+        }
+    };
+}} // namespace pybind11::detail
+
+
 // namespace _openvdbmodule {
 
 // using namespace openvdb;
 
 
-// /// Helper class to convert between a Python numeric sequence
+// // /// Helper class to convert between a Python numeric sequence
 // /// (tuple, list, etc.) and an openvdb::Coord
 // struct CoordConverter
 // {
@@ -96,7 +140,7 @@ void exportFloatGrid(py::module_ &m);
 //     }
 // }; // struct CoordConverter
 
-// /// @todo CoordBBoxConverter?
+/// @todo CoordBBoxConverter?
 
 
 // ////////////////////////////////////////
@@ -817,8 +861,8 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
 
     // using namespace openvdb::OPENVDB_VERSION_NAME;
 
-    // // Initialize OpenVDB.
-    // initialize();
+    // Initialize OpenVDB.
+    initialize();
 
     // _openvdbmodule::CoordConverter::registerConverter();
 
@@ -869,6 +913,11 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
     // exportVec3Grid(m);
     // exportPointGrid(m);
 
+    m.def("print",
+          &print,
+          py::arg("xyz"),
+          "print(xyz) -> None\n\n"
+          "Print yo int yo.");
 
     // m.def("read",
     //     &_openvdbmodule::readFromFile,

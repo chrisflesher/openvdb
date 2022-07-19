@@ -199,7 +199,7 @@ struct StringEnum
 /// boost::shared_ptr<openvdb::Grid<openvdb::tree::Tree<openvdb::tree::RootNode<...".
 template<typename T>
 inline T
-extractArg(
+castArg(
     py::object obj,
     const char* functionName,
     const char* className = nullptr,

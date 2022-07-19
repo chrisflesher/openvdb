@@ -169,31 +169,31 @@ getGridBaseFromGrid(py::object gridObj)
 ////////////////////////////////////////
 
 
-/// Variant of pyutil::extractArg() that uses the class name of a given grid type
+/// Variant of pyutil::castArg() that uses the class name of a given grid type
 template<typename GridType, typename T>
 inline T
-extractValueArg(
+castValueArg(
     py::object obj,
     const char* functionName,
     int argIdx = 0, // args are numbered starting from 1
     const char* expectedType = nullptr)
 {
-    return pyutil::extractArg<T>(obj,
+    return pyutil::castArg<T>(obj,
         functionName, pyutil::GridTraits<GridType>::name(), argIdx, expectedType);
 }
 
 
-/// @brief Variant of pyutil::extractArg() that uses the class name
+/// @brief Variant of pyutil::castArg() that uses the class name
 /// and @c ValueType of a given grid type
 template<typename GridType>
 inline typename GridType::ValueType
-extractValueArg(
+castValueArg(
     py::object obj,
     const char* functionName,
     int argIdx = 0, // args are numbered starting from 1
     const char* expectedType = nullptr)
 {
-    return extractValueArg<GridType, typename GridType::ValueType>(
+    return castValueArg<GridType, typename GridType::ValueType>(
         obj, functionName, argIdx, expectedType);
 }
 
@@ -271,7 +271,7 @@ template<typename GridType>
 inline void
 setGridBackground(GridType& grid, py::object obj)
 {
-    tools::changeBackground(grid.tree(), extractValueArg<GridType>(obj, "setBackground"));
+    tools::changeBackground(grid.tree(), castValueArg<GridType>(obj, "setBackground"));
 }
 
 
@@ -282,7 +282,7 @@ setGridName(GridBase::Ptr grid, py::object strObj)
         if (!strObj) { // if name is None
             grid->removeMeta(GridBase::META_GRID_NAME);
         } else {
-            const std::string name = pyutil::extractArg<std::string>(
+            const std::string name = pyutil::castArg<std::string>(
                 strObj, "setName", /*className=*/nullptr, /*argIdx=*/1, "str");
             grid->setName(name);
         }
@@ -297,7 +297,7 @@ setGridCreator(GridBase::Ptr grid, py::object strObj)
         if (!strObj) { // if name is None
             grid->removeMeta(GridBase::META_GRID_CREATOR);
         } else {
-            const std::string name = pyutil::extractArg<std::string>(
+            const std::string name = pyutil::castArg<std::string>(
                 strObj, "setCreator", /*className=*/nullptr, /*argIdx=*/1, "str");
             grid->setCreator(name);
         }
@@ -318,7 +318,7 @@ setGridClass(GridBase::Ptr grid, py::object strObj)
     if (!strObj) {
         grid->clearGridClass();
     } else {
-        const std::string name = pyutil::extractArg<std::string>(
+        const std::string name = pyutil::castArg<std::string>(
             strObj, "setGridClass", /*className=*/nullptr, /*argIdx=*/1, "str");
         grid->setGridClass(GridBase::stringToGridClass(name));
     }
@@ -338,7 +338,7 @@ setVecType(GridBase::Ptr grid, py::object strObj)
     if (!strObj) {
         grid->clearVectorType();
     } else {
-        const std::string name = pyutil::extractArg<std::string>(
+        const std::string name = pyutil::castArg<std::string>(
             strObj, "setVectorType", /*className=*/nullptr, /*argIdx=*/1, "str");
         grid->setVectorType(GridBase::stringToVecType(name));
     }
@@ -361,7 +361,7 @@ inline void
 setGridTransform(GridBase::Ptr grid, py::object xformObj)
 {
     if (grid) {
-        if (math::Transform::Ptr xform = pyutil::extractArg<math::Transform::Ptr>(
+        if (math::Transform::Ptr xform = pyutil::castArg<math::Transform::Ptr>(
             xformObj, "setTransform", /*className=*/nullptr, /*argIdx=*/1, "Transform"))
         {
             grid->setTransform(xform);
@@ -525,14 +525,14 @@ getIndexRange(const GridType& grid)
 }
 
 
-//template<typename GridType>
-//inline void
-//expandIndexRange(GridType& grid, py::object coordObj)
-//{
-//    Coord xyz = extractValueArg<GridType, Coord>(
-//        coordObj, "expand", 0, "tuple(int, int, int)");
-//    grid.tree().expand(xyz);
-//}
+template<typename GridType>
+inline void
+expandIndexRange(GridType& grid, py::object coordObj)
+{
+   Coord xyz = castValueArg<GridType, Coord>(
+       coordObj, "expand", 0, "tuple(int, int, int)");
+   grid.tree().expand(xyz);
+}
 
 
 ////////////////////////////////////////
@@ -607,7 +607,7 @@ getIndexRange(const GridType& grid)
 // {
 //     if (!grid) return py::none();
 
-//     const std::string name = pyutil::extractArg<std::string>(
+//     const std::string name = pyutil::castArg<std::string>(
 //         nameObj, "__getitem__", nullptr, /*argIdx=*/1, "str");
 
 //     Metadata::ConstPtr metadata = (*grid)[name];
@@ -631,7 +631,7 @@ getIndexRange(const GridType& grid)
 // {
 //     if (!grid) return;
 
-//     const std::string name = pyutil::extractArg<std::string>(
+//     const std::string name = pyutil::castArg<std::string>(
 //         nameObj, "__setitem__", nullptr, /*argIdx=*/1, "str");
 
 //     // Insert the Python object into a Python dict, then use the dict-to-MetaMap
@@ -679,7 +679,7 @@ template<typename GridType>
 inline void
 prune(GridType& grid, py::object tolerance)
 {
-    tools::prune(grid.tree(), extractValueArg<GridType>(tolerance, "prune"));
+    tools::prune(grid.tree(), castValueArg<GridType>(tolerance, "prune"));
 }
 
 
@@ -691,7 +691,7 @@ pruneInactive(GridType& grid, py::object valObj)
         tools::pruneInactive(grid.tree());
     } else {
         tools::pruneInactiveWithValue(
-            grid.tree(), extractValueArg<GridType>(valObj, "pruneInactive"));
+            grid.tree(), castValueArg<GridType>(valObj, "pruneInactive"));
     }
 }
 
@@ -702,9 +702,9 @@ fill(GridType& grid, py::object minObj, py::object maxObj,
     py::object valObj, bool active)
 {
     const Coord
-        bmin = extractValueArg<GridType, Coord>(minObj, "fill", 1, "tuple(int, int, int)"),
-        bmax = extractValueArg<GridType, Coord>(maxObj, "fill", 2, "tuple(int, int, int)");
-    grid.fill(CoordBBox(bmin, bmax), extractValueArg<GridType>(valObj, "fill", 3), active);
+        bmin = castValueArg<GridType, Coord>(minObj, "fill", 1, "tuple(int, int, int)"),
+        bmax = castValueArg<GridType, Coord>(maxObj, "fill", 2, "tuple(int, int, int)");
+    grid.fill(CoordBBox(bmin, bmax), castValueArg<GridType>(valObj, "fill", 3), active);
 }
 
 
@@ -926,12 +926,12 @@ public:
 
         // Extract the coordinates (i, j, k) of the voxel at which to start populating data.
         // Voxel (i, j, k) will correspond to array element (0, 0, 0).
-        const Coord origin = extractValueArg<GridType, Coord>(
+        const Coord origin = castValueArg<GridType, Coord>(
             coordObj, opName[toGrid], 1, "tuple(int, int, int)");
 
         // Extract a reference to (not a copy of) the NumPy array,
         // or throw an exception if arrObj is not a NumPy array object.
-        const auto arrayObj = pyutil::extractArg<NumPyArrayType>(
+        const auto arrayObj = pyutil::castArg<NumPyArrayType>(
             arrObj, opName[toGrid], pyutil::GridTraits<GridType>::name(),
             /*argIdx=*/1, "numpy.ndarray");
 
@@ -945,7 +945,7 @@ public:
         mArrayTypeId = arrayTypeId(arrayObj);
         mArrayDims = arrayDimensions(arrayObj);
 
-        mTolerance = extractValueArg<GridType>(tolObj, opName[toGrid], 2);
+        mTolerance = castValueArg<GridType>(tolObj, opName[toGrid], 2);
 
         // Compute the bounding box of the region of the grid that is to be copied from or to.
         Coord bboxMax = origin;
@@ -1351,13 +1351,13 @@ meshToLevelSet(py::object pointsObj, py::object trianglesObj, py::object quadsOb
     };
 
     // Extract the narrow band half width from the arguments to this method.
-    const float halfWidth = extractValueArg<GridType, float>(
+    const float halfWidth = castValueArg<GridType, float>(
         halfWidthObj, Local::methodName(), /*argIdx=*/5, "float");
 
     // Extract the transform from the arguments to this method.
     math::Transform::Ptr xform = math::Transform::createLinearTransform();
     if (!xformObj.is_none()) {
-        xform = extractValueArg<GridType, math::Transform::Ptr>(
+        xform = castValueArg<GridType, math::Transform::Ptr>(
             xformObj, Local::methodName(), /*argIdx=*/4, "Transform");
     }
 
@@ -1366,7 +1366,7 @@ meshToLevelSet(py::object pointsObj, py::object trianglesObj, py::object quadsOb
     if (!pointsObj.is_none()) {
         // Extract a reference to (not a copy of) a NumPy array argument,
         // or throw an exception if the argument is not a NumPy array object.
-        auto arrayObj = extractValueArg<GridType, NumPyArrayType>(
+        auto arrayObj = castValueArg<GridType, NumPyArrayType>(
             pointsObj, Local::methodName(), /*argIdx=*/1, "numpy.ndarray");
 
         // Throw an exception if the array has the wrong type or dimensions.
@@ -1379,7 +1379,7 @@ meshToLevelSet(py::object pointsObj, py::object trianglesObj, py::object quadsOb
     // Extract the list of triangle indices from the arguments to this method.
     std::vector<Vec3I> triangles;
     if (!trianglesObj.is_none()) {
-        auto arrayObj = extractValueArg<GridType, NumPyArrayType>(
+        auto arrayObj = castValueArg<GridType, NumPyArrayType>(
             trianglesObj, Local::methodName(), /*argIdx=*/2, "numpy.ndarray");
         Local::validate2DNumPyArray(arrayObj, /*N=*/3, /*desiredType=*/"int");
         copyVecArray(arrayObj, triangles);
@@ -1388,7 +1388,7 @@ meshToLevelSet(py::object pointsObj, py::object trianglesObj, py::object quadsOb
     // Extract the list of quad indices from the arguments to this method.
     std::vector<Vec4I> quads;
     if (!quadsObj.is_none()) {
-        auto arrayObj = extractValueArg<GridType, NumPyArrayType>(
+        auto arrayObj = castValueArg<GridType, NumPyArrayType>(
             quadsObj, Local::methodName(), /*argIdx=*/3, "numpy.ndarray");
         Local::validate2DNumPyArray(arrayObj, /*N=*/4, /*desiredType=*/"int");
         copyVecArray(arrayObj, quads);
@@ -1403,7 +1403,7 @@ template<typename GridType>
 inline py::object
 volumeToQuadMesh(const GridType& grid, py::object isovalueObj)
 {
-    const double isovalue = pyutil::extractArg<double>(
+    const double isovalue = pyutil::castArg<double>(
         isovalueObj, "convertToQuads", /*className=*/nullptr, /*argIdx=*/2, "float");
 
     // Mesh the input grid and populate lists of mesh vertices and face vertex indices.
@@ -1460,9 +1460,9 @@ template<typename GridType>
 inline py::object
 volumeToMesh(const GridType& grid, py::object isovalueObj, py::object adaptivityObj)
 {
-    const double isovalue = pyutil::extractArg<double>(
+    const double isovalue = pyutil::castArg<double>(
         isovalueObj, "convertToPolygons", /*className=*/nullptr, /*argIdx=*/2, "float");
-    const double adaptivity = pyutil::extractArg<double>(
+    const double adaptivity = pyutil::castArg<double>(
         adaptivityObj, "convertToPolygons", /*className=*/nullptr, /*argIdx=*/3, "float");
 
     // Mesh the input grid and populate lists of mesh vertices and face vertex indices.
@@ -1628,7 +1628,7 @@ inline void
 combine(GridType& grid, py::object otherGridObj, py::object funcObj)
 {
     using GridPtr = typename GridType::Ptr;
-    GridPtr otherGrid = extractValueArg<GridType, GridPtr>(otherGridObj,
+    GridPtr otherGrid = castValueArg<GridType, GridPtr>(otherGridObj,
         "combine", 1, pyutil::GridTraits<GridType>::name());
     TreeCombineOp<GridType> op(funcObj);
     grid.tree().combine(otherGrid->tree(), op, /*prune=*/true);

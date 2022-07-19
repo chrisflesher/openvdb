@@ -78,28 +78,28 @@ struct AccessorTraits<const _GridT>
 ////////////////////////////////////////
 
 
-/// Variant of pyutil::extractArg() that extracts a Coord from a py::object
+/// Variant of pyutil::castArg() that extracts a Coord from a py::object
 /// argument to a given ValueAccessor method
 template<typename GridT>
 inline Coord
 extractCoordArg(py::object obj, const char* functionName, int argIdx = 0)
 {
-    return pyutil::extractArg<Coord>(obj, functionName,
+    return pyutil::castArg<Coord>(obj, functionName,
         AccessorTraits<GridT>::typeName(), argIdx, "tuple(int, int, int)");
 }
 
 
-/// Variant of pyutil::extractArg() that extracts a value of type
+/// Variant of pyutil::castArg() that extracts a value of type
 /// ValueAccessor::ValueType from an argument to a ValueAccessor method
 template<typename GridT>
 inline typename GridT::ValueType
-extractValueArg(
+castValueArg(
     py::object obj,
     const char* functionName,
     int argIdx = 0, // args are numbered starting from 1
     const char* expectedType = nullptr)
 {
-    return pyutil::extractArg<typename GridT::ValueType>(
+    return pyutil::castArg<typename GridT::ValueType>(
         obj, functionName, AccessorTraits<GridT>::typeName(), argIdx, expectedType);
 }
 
@@ -184,7 +184,7 @@ public:
     void setValueOnly(py::object coordObj, py::object valObj)
     {
         Coord ijk = extractCoordArg<GridType>(coordObj, "setValueOnly", 1);
-        ValueType val = extractValueArg<GridType>(valObj, "setValueOnly", 2);
+        ValueType val = castValueArg<GridType>(valObj, "setValueOnly", 2);
         Traits::setValueOnly(mAccessor, ijk, val);
     }
 
@@ -194,7 +194,7 @@ public:
         if (valObj.is_none()) {
             Traits::setValueOn(mAccessor, ijk);
         } else {
-            ValueType val = extractValueArg<GridType>(valObj, "setValueOn", 2);
+            ValueType val = castValueArg<GridType>(valObj, "setValueOn", 2);
             Traits::setValueOn(mAccessor, ijk, val);
         }
     }
@@ -205,7 +205,7 @@ public:
         if (valObj.is_none()) {
             Traits::setValueOff(mAccessor, ijk);
         } else {
-            ValueType val = extractValueArg<GridType>(valObj, "setValueOff", 2);
+            ValueType val = castValueArg<GridType>(valObj, "setValueOff", 2);
             Traits::setValueOff(mAccessor, ijk, val);
         }
     }

@@ -14,8 +14,6 @@
 
 namespace py = pybind11;
 
-using namespace openvdb;
-
 
 // Forward declarations
 void exportTransform(py::module_ &m);
@@ -30,7 +28,16 @@ void print(openvdb::Coord xyz) {
     std::cout << xyz[0] << " " << xyz[1] << " " << xyz[2] << std::endl;
 }
 
+// namespace _openvdbmodule {
+
+using namespace openvdb;
+
+// ////////////////////////////////////////
+
 namespace pybind11 { namespace detail {
+
+    /// Helper class to convert between a Python numeric sequence
+    /// (tuple, list, etc.) and an openvdb::Coord
     template <> struct type_caster<openvdb::Coord> {
     public:
         PYBIND11_TYPE_CASTER(openvdb::Coord, const_name("Coord"));
@@ -57,7 +64,7 @@ namespace pybind11 { namespace detail {
             return !(PyErr_Occurred());
         }
 
-        static handle cast(openvdb::Coord src, return_value_policy /* policy */, handle /* parent */) {
+        static handle cast(openvdb::Coord src, return_value_policy, handle) {
             py::object obj = py::make_tuple(src[0], src[1], src[2]);
             Py_INCREF(obj.ptr());
                 ///< @todo is this the right way to ensure that the object
@@ -65,155 +72,65 @@ namespace pybind11 { namespace detail {
             return obj.ptr();
         }
     };
+
+
+    /// Helper class to convert between a Python numeric sequence
+    /// (tuple, list, etc.) and an openvdb::Vec
+    template <> struct type_caster<openvdb::Vec2i> {
+    public:
+        PYBIND11_TYPE_CASTER(openvdb::Vec2i, const_name("VecT"));
+
+        bool load(handle src, bool) {
+            PyObject *obj = src.ptr();
+            if (!PySequence_Check(obj)) {
+                return false;
+            }
+            if (PySequence_Length(obj) != openvdb::Vec2i::size) {
+                return false;
+            }
+            for (int n = 0; n < openvdb::Vec2i::size; ++n) {
+                value[n] = pyutil::getSequenceItem<openvdb::Vec2i::value_type>(obj, n);
+            }
+            return !(PyErr_Occurred());
+        }
+
+        static handle cast(openvdb::Vec2i src, return_value_policy, handle) {
+            OPENVDB_NO_UNREACHABLE_CODE_WARNING_BEGIN
+            py::object obj;
+            switch (openvdb::Vec2i::size) { // compile-time constant
+                case 2: obj = py::make_tuple(src[0], src[1]); break;
+                case 3: obj = py::make_tuple(src[0], src[1], src[2]); break;
+                case 4: obj = py::make_tuple(src[0], src[1], src[2], src[3]); break;
+                default:
+                {
+                    py::list lst;
+                    for (int n = 0; n < openvdb::Vec2i::size; ++n) lst.append(src[n]);
+                    obj = lst;
+                }
+            }
+            OPENVDB_NO_UNREACHABLE_CODE_WARNING_END
+            Py_INCREF(obj.ptr());
+            return obj.ptr();
+        }
+    };
+
+    // type_caster<openvdb::Vec2i, openvdb::Vec2i::value_type>;
+    // _openvdbmodule::VecConverter<Vec2I>::registerConverter();
+    // _openvdbmodule::VecConverter<Vec2s>::registerConverter();
+    // _openvdbmodule::VecConverter<Vec2d>::registerConverter();
+
+    // _openvdbmodule::VecConverter<Vec3i>::registerConverter();
+    // _openvdbmodule::VecConverter<Vec3I>::registerConverter();
+    // _openvdbmodule::VecConverter<Vec3s>::registerConverter();
+    // _openvdbmodule::VecConverter<Vec3d>::registerConverter();
+
+    // _openvdbmodule::VecConverter<Vec4i>::registerConverter();
+    // _openvdbmodule::VecConverter<Vec4I>::registerConverter();
+    // _openvdbmodule::VecConverter<Vec4s>::registerConverter();
+    // _openvdbmodule::VecConverter<Vec4d>::registerConverter();
+
+
 }} // namespace pybind11::detail
-
-
-// namespace _openvdbmodule {
-
-// using namespace openvdb;
-
-
-// // /// Helper class to convert between a Python numeric sequence
-// /// (tuple, list, etc.) and an openvdb::Coord
-// struct CoordConverter
-// {
-//     /// @return a Python tuple object equivalent to the given Coord.
-//     static PyObject* convert(const openvdb::Coord& xyz)
-//     {
-//         py::object obj = py::make_tuple(xyz[0], xyz[1], xyz[2]);
-//         Py_INCREF(obj.ptr());
-//             ///< @todo is this the right way to ensure that the object
-//             ///< doesn't get freed on exit?
-//         return obj.ptr();
-//     }
-
-//     /// @return nullptr if the given Python object is not convertible to a Coord.
-//     static void* convertible(PyObject* obj)
-//     {
-//         if (!PySequence_Check(obj)) return nullptr; // not a Python sequence
-
-//         Py_ssize_t len = PySequence_Length(obj);
-//         if (len != 3 && len != 1) return nullptr; // not the right length
-
-//         return obj;
-//     }
-
-//     /// Convert from a Python object to a Coord.
-//     static void construct(PyObject* obj,
-//         py::converter::rvalue_from_python_stage1_data* data)
-//     {
-//         // Construct a Coord in the provided memory location.
-//         using StorageT = py::converter::rvalue_from_python_storage<openvdb::Coord>;
-//         void* storage = reinterpret_cast<StorageT*>(data)->storage.bytes;
-//         new (storage) openvdb::Coord; // placement new
-//         data->convertible = storage;
-
-//         openvdb::Coord* xyz = static_cast<openvdb::Coord*>(storage);
-
-//         // Populate the Coord.
-//         switch (PySequence_Length(obj)) {
-//         case 1:
-//             xyz->reset(pyutil::getSequenceItem<openvdb::Int32>(obj, 0));
-//             break;
-//         case 3:
-//             xyz->reset(
-//                 pyutil::getSequenceItem<openvdb::Int32>(obj, 0),
-//                 pyutil::getSequenceItem<openvdb::Int32>(obj, 1),
-//                 pyutil::getSequenceItem<openvdb::Int32>(obj, 2));
-//             break;
-//         default:
-//             PyErr_Format(PyExc_ValueError,
-//                 "expected a sequence of three integers");
-//             py::throw_error_already_set();
-//             break;
-//         }
-//     }
-
-//     /// Register both the Coord-to-tuple and the sequence-to-Coord converters.
-//     static void registerConverter()
-//     {
-//         py::to_python_converter<openvdb::Coord, CoordConverter>();
-//         py::converter::registry::push_back(
-//             &CoordConverter::convertible,
-//             &CoordConverter::construct,
-//             py::type_id<openvdb::Coord>());
-//     }
-// }; // struct CoordConverter
-
-/// @todo CoordBBoxConverter?
-
-
-// ////////////////////////////////////////
-
-
-// /// Helper class to convert between a Python numeric sequence
-// /// (tuple, list, etc.) and an openvdb::Vec
-// template<typename VecT>
-// struct VecConverter
-// {
-//     static PyObject* convert(const VecT& v)
-//     {
-//         py::object obj;
-//         OPENVDB_NO_UNREACHABLE_CODE_WARNING_BEGIN
-//         switch (VecT::size) { // compile-time constant
-//             case 2: obj = py::make_tuple(v[0], v[1]); break;
-//             case 3: obj = py::make_tuple(v[0], v[1], v[2]); break;
-//             case 4: obj = py::make_tuple(v[0], v[1], v[2], v[3]); break;
-//             default:
-//             {
-//                 py::list lst;
-//                 for (int n = 0; n < VecT::size; ++n) lst.append(v[n]);
-//                 obj = lst;
-//             }
-//         }
-//         OPENVDB_NO_UNREACHABLE_CODE_WARNING_END
-//         Py_INCREF(obj.ptr());
-//         return obj.ptr();
-//     }
-
-//     static void* convertible(PyObject* obj)
-//     {
-//         if (!PySequence_Check(obj)) return nullptr; // not a Python sequence
-
-//         Py_ssize_t len = PySequence_Length(obj);
-//         if (len != VecT::size) return nullptr;
-
-//         // Check that all elements of the Python sequence are convertible
-//         // to the Vec's value type.
-//         py::object seq = pyutil::pyBorrow(obj);
-//         for (int i = 0; i < VecT::size; ++i) {
-//             if (!py::extract<typename VecT::value_type>(seq[i]).check()) {
-//                 return nullptr;
-//             }
-//         }
-//         return obj;
-//     }
-
-//     static void construct(PyObject* obj,
-//         py::converter::rvalue_from_python_stage1_data* data)
-//     {
-//         // Construct a Vec in the provided memory location.
-//         using StorageT = py::converter::rvalue_from_python_storage<VecT>;
-//         void* storage = reinterpret_cast<StorageT*>(data)->storage.bytes;
-//         new (storage) VecT; // placement new
-//         data->convertible = storage;
-//         VecT* v = static_cast<VecT*>(storage);
-
-//         // Populate the vector.
-//         for (int n = 0; n < VecT::size; ++n) {
-//             (*v)[n] = pyutil::getSequenceItem<typename VecT::value_type>(obj, n);
-//         }
-//     }
-
-//     static void registerConverter()
-//     {
-//         py::to_python_converter<VecT, VecConverter<VecT> >();
-//         py::converter::registry::push_back(
-//             &VecConverter<VecT>::convertible,
-//             &VecConverter<VecT>::construct,
-//             py::type_id<VecT>());
-//     }
-// }; // struct VecConverter
 
 
 // ////////////////////////////////////////
@@ -863,8 +780,6 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
 
     // Initialize OpenVDB.
     initialize();
-
-    // _openvdbmodule::CoordConverter::registerConverter();
 
     // _openvdbmodule::VecConverter<Vec2i>::registerConverter();
     // _openvdbmodule::VecConverter<Vec2I>::registerConverter();

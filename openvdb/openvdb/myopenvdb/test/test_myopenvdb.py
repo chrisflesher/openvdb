@@ -31,3 +31,14 @@ def test_set_program_name():
     vdb.setProgramName('name')
     vdb.setProgramName('name', True)
     vdb.setProgramName('name', False)
+
+
+@pytest.mark.parametrize('name', [
+    'LIBRARY_VERSION',
+    'FILE_FORMAT_VERSION',
+    'COORD_MIN',
+    'COORD_MAX',
+    'LEVEL_SET_HALF_WIDTH',
+])
+def test_constant(name):
+    getattr(vdb, name)

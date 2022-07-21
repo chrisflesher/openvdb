@@ -158,238 +158,183 @@ namespace pybind11 { namespace detail {
         }
     };
 
+    /// Helper class to convert between a Python integer and a openvdb::PointIndex
+    template <> struct type_caster<PointDataIndex32> {
+    public:
+        PYBIND11_TYPE_CASTER(PointDataIndex32, const_name("PointIndexT"));
+
+        /// Convert from a Python object to a PointIndex.
+        bool load(handle src, bool) {
+            PyObject *obj = src.ptr();
+            PyObject *tmp = PyNumber_Long(obj);
+            if (!tmp) {
+                return false;
+            }
+            value = static_cast<PointDataIndex32>(PyLong_AsLong(tmp));
+            Py_DECREF(tmp);
+            return !(PyErr_Occurred());
+        }
+
+        /// @return a Python integer object equivalent to the given PointIndex.
+        static handle cast(PointDataIndex32 src, return_value_policy, handle) {
+            return PyLong_FromLong(src);
+        }
+    };
+
+    // /// Helper class to convert between a Python dict and an openvdb::MetaMap
+    // /// @todo Consider implementing a separate, templated converter for
+    // /// the various Metadata types.
+    // template <> struct type_caster<MetaMap> {
+    // public:
+    //     PYBIND11_TYPE_CASTER(MetaMap, const_name("MetaMapT"));
+
+    //     /// Convert from a Python object to a PointIndex.
+    //     bool load(handle src, bool) {
+    //         PyObject *obj = src.ptr();
+    //         if (!PyMapping_Check(obj)) {
+    //             return false;
+    //         }
+
+    //         // Populate the map.
+    //         py::dict pyDict(pyutil::pyBorrow(obj));
+    //         py::list keys = pyDict.keys();
+    //         for (size_t i = 0, N = py::len(keys); i < N; ++i) {
+    //             std::string name;
+    //             py::object key = keys[i];
+    //             if (py::cast<std::string>(key).check()) {
+    //                 name = py::cast<std::string>(key);
+    //             } else {
+    //                 const std::string
+    //                     keyAsStr = py::cast<std::string>(key.attr("__str__")()),
+    //                     keyType = pyutil::className(key);
+    //                 PyErr_Format(PyExc_TypeError,
+    //                     "expected string as metadata name, found object"
+    //                     " \"%s\" of type %s", keyAsStr.c_str(), keyType.c_str());
+    //                 py::throw_error_already_set();
+    //             }
+
+    //             // Note: the order of the following tests is significant, as it
+    //             // avoids unnecessary type promotion (e.g., of ints to floats).
+    //             py::object val = pyDict[keys[i]];
+    //             Metadata::Ptr meta;
+    //             if (py::cast<std::string>(val).check()) {
+    //                 meta.reset(new StringMetadata(py::cast<std::string>(val)));
+    //             } else if (bool(PyBool_Check(val.ptr()))) {
+    //                 meta.reset(new BoolMetadata(py::cast<bool>(val)));
+    //             } else if (py::cast<Int64>(val).check()) {
+    //                 const Int64 n = py::cast<Int64>(val);
+    //                 if (n <= std::numeric_limits<Int32>::max()
+    //                     && n >= std::numeric_limits<Int32>::min())
+    //                 {
+    //                     meta.reset(new Int32Metadata(static_cast<Int32>(n)));
+    //                 } else {
+    //                     meta.reset(new Int64Metadata(n));
+    //                 }
+    //             //} else if (py::cast<float>(val).check()) {
+    //             //    meta.reset(new FloatMetadata(py::cast<float>(val)));
+    //             } else if (py::cast<double>(val).check()) {
+    //                 meta.reset(new DoubleMetadata(py::cast<double>(val)));
+    //             } else if (py::cast<Vec2i>(val).check()) {
+    //                 meta.reset(new Vec2IMetadata(py::cast<Vec2i>(val)));
+    //             } else if (py::cast<Vec2d>(val).check()) {
+    //                 meta.reset(new Vec2DMetadata(py::cast<Vec2d>(val)));
+    //             } else if (py::cast<Vec2s>(val).check()) {
+    //                 meta.reset(new Vec2SMetadata(py::cast<Vec2s>(val)));
+    //             } else if (py::cast<Vec3i>(val).check()) {
+    //                 meta.reset(new Vec3IMetadata(py::cast<Vec3i>(val)));
+    //             } else if (py::cast<Vec3d>(val).check()) {
+    //                 meta.reset(new Vec3DMetadata(py::cast<Vec3d>(val)));
+    //             } else if (py::cast<Vec3s>(val).check()) {
+    //                 meta.reset(new Vec3SMetadata(py::cast<Vec3s>(val)));
+    //             } else if (py::cast<Vec4i>(val).check()) {
+    //                 meta.reset(new Vec4IMetadata(py::cast<Vec4i>(val)));
+    //             } else if (py::cast<Vec4d>(val).check()) {
+    //                 meta.reset(new Vec4DMetadata(py::cast<Vec4d>(val)));
+    //             } else if (py::cast<Vec4s>(val).check()) {
+    //                 meta.reset(new Vec4SMetadata(py::cast<Vec4s>(val)));
+    //             } else if (py::cast<Mat4d>(val).check()) {
+    //                 meta.reset(new Mat4DMetadata(py::cast<Mat4d>(val)));
+    //             } else if (py::cast<Mat4s>(val).check()) {
+    //                 meta.reset(new Mat4SMetadata(py::cast<Mat4s>(val)));
+    //             } else if (py::cast<Metadata::Ptr>(val).check()) {
+    //                 meta = py::cast<Metadata::Ptr>(val);
+    //             } else {
+    //                 const std::string
+    //                     valAsStr = py::cast<std::string>(val.attr("__str__")()),
+    //                     valType = pyutil::className(val);
+    //                 PyErr_Format(PyExc_TypeError,
+    //                     "metadata value \"%s\" of type %s is not allowed",
+    //                     valAsStr.c_str(), valType.c_str());
+    //                 py::throw_error_already_set();
+    //             }
+    //             if (meta) {
+    //                 value.insertMeta(name, *meta);
+    //             }
+    //         }
+    //     }
+
+    //     /// @return a Python dict object equivalent to the given MetaMap.
+    //     static handle cast(MetaMap src, return_value_policy, handle) {
+    //         py::dict ret;
+    //         for (MetaMap::ConstMetaIterator it = src.beginMeta(); it != src.endMeta(); ++it) {
+    //             if (Metadata::Ptr meta = it->second) {
+    //                 py::object obj(meta);
+    //                 const std::string typeName = meta->typeName();
+    //                 if (typeName == StringMetadata::staticTypeName()) {
+    //                     obj = py::str(static_cast<StringMetadata&>(*meta).value());
+    //                 } else if (typeName == DoubleMetadata::staticTypeName()) {
+    //                     obj = py::object(static_cast<DoubleMetadata&>(*meta).value());
+    //                 } else if (typeName == FloatMetadata::staticTypeName()) {
+    //                     obj = py::object(static_cast<FloatMetadata&>(*meta).value());
+    //                 } else if (typeName == Int32Metadata::staticTypeName()) {
+    //                     obj = py::object(static_cast<Int32Metadata&>(*meta).value());
+    //                 } else if (typeName == Int64Metadata::staticTypeName()) {
+    //                     obj = py::object(static_cast<Int64Metadata&>(*meta).value());
+    //                 } else if (typeName == BoolMetadata::staticTypeName()) {
+    //                     obj = py::object(static_cast<BoolMetadata&>(*meta).value());
+    //                 } else if (typeName == Vec2DMetadata::staticTypeName()) {
+    //                     const Vec2d v = static_cast<Vec2DMetadata&>(*meta).value();
+    //                     obj = py::make_tuple(v[0], v[1]);
+    //                 } else if (typeName == Vec2IMetadata::staticTypeName()) {
+    //                     const Vec2i v = static_cast<Vec2IMetadata&>(*meta).value();
+    //                     obj = py::make_tuple(v[0], v[1]);
+    //                 } else if (typeName == Vec2SMetadata::staticTypeName()) {
+    //                     const Vec2s v = static_cast<Vec2SMetadata&>(*meta).value();
+    //                     obj = py::make_tuple(v[0], v[1]);
+    //                 } else if (typeName == Vec3DMetadata::staticTypeName()) {
+    //                     const Vec3d v = static_cast<Vec3DMetadata&>(*meta).value();
+    //                     obj = py::make_tuple(v[0], v[1], v[2]);
+    //                 } else if (typeName == Vec3IMetadata::staticTypeName()) {
+    //                     const Vec3i v = static_cast<Vec3IMetadata&>(*meta).value();
+    //                     obj = py::make_tuple(v[0], v[1], v[2]);
+    //                 } else if (typeName == Vec3SMetadata::staticTypeName()) {
+    //                     const Vec3s v = static_cast<Vec3SMetadata&>(*meta).value();
+    //                     obj = py::make_tuple(v[0], v[1], v[2]);
+    //                 } else if (typeName == Vec4DMetadata::staticTypeName()) {
+    //                     const Vec4d v = static_cast<Vec4DMetadata&>(*meta).value();
+    //                     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
+    //                 } else if (typeName == Vec4IMetadata::staticTypeName()) {
+    //                     const Vec4i v = static_cast<Vec4IMetadata&>(*meta).value();
+    //                     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
+    //                 } else if (typeName == Vec4SMetadata::staticTypeName()) {
+    //                     const Vec4s v = static_cast<Vec4SMetadata&>(*meta).value();
+    //                     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
+    //                 } else if (typeName == Mat4SMetadata::staticTypeName()) {
+    //                     const Mat4s m = static_cast<Mat4SMetadata&>(*meta).value();
+    //                     obj = MatConverter<Mat4s>::toList(m);
+    //                 } else if (typeName == Mat4DMetadata::staticTypeName()) {
+    //                     const Mat4d m = static_cast<Mat4DMetadata&>(*meta).value();
+    //                     obj = MatConverter<Mat4d>::toList(m);
+    //                 }
+    //                 ret[it->first] = obj;
+    //             }
+    //         }
+    //         Py_INCREF(ret.ptr());
+    //         return ret.ptr();
+    //     }
+    // };
+
 }} // namespace pybind11::detail
-
-
-// ////////////////////////////////////////
-
-
-// /// Helper class to convert between a Python integer and a openvdb::PointIndex
-// template <typename PointIndexT>
-// struct PointIndexConverter
-// {
-//     using IntType = typename PointIndexT::IntType;
-
-//     /// @return a Python integer object equivalent to the given PointIndex.
-//     static PyObject* convert(const PointIndexT& index)
-//     {
-//         py::object obj(static_cast<IntType>(index));
-//         Py_INCREF(obj.ptr());
-//         return obj.ptr();
-//     }
-
-//     /// @return nullptr if the given Python object is not convertible to the PointIndex.
-//     static void* convertible(PyObject* obj)
-//     {
-// #if PY_MAJOR_VERSION >= 3
-//         if (!PyLong_Check(obj)) return nullptr; // not a Python integer
-// #else
-//         if (!PyInt_Check(obj)) return nullptr; // not a Python integer
-// #endif
-//         return obj;
-//     }
-
-//     /// Convert from a Python object to a PointIndex.
-//     static void construct(PyObject* obj,
-//         py::converter::rvalue_from_python_stage1_data* data)
-//     {
-//         // Construct a PointIndex in the provided memory location.
-//         using StorageT = py::converter::rvalue_from_python_storage<PointIndexT>;
-//         void* storage = reinterpret_cast<StorageT*>(data)->storage.bytes;
-//         new (storage) PointIndexT; // placement new
-//         data->convertible = storage;
-
-//         // Extract the PointIndex from the python integer
-//         PointIndexT* index = static_cast<PointIndexT*>(storage);
-// #if PY_MAJOR_VERSION >= 3
-//         *index = static_cast<IntType>(PyLong_AsLong(obj));
-// #else
-//         *index = static_cast<IntType>(PyInt_AsLong(obj));
-// #endif
-//     }
-
-//     /// Register both the PointIndex-to-integer and the integer-to-PointIndex converters.
-//     static void registerConverter()
-//     {
-//         py::to_python_converter<PointIndexT, PointIndexConverter>();
-//         py::converter::registry::push_back(
-//             &PointIndexConverter::convertible,
-//             &PointIndexConverter::construct,
-//             py::type_id<PointIndexT>());
-//     }
-// }; // struct PointIndexConverter
-
-
-// ////////////////////////////////////////
-
-
-// /// Helper class to convert between a Python dict and an openvdb::MetaMap
-// /// @todo Consider implementing a separate, templated converter for
-// /// the various Metadata types.
-// struct MetaMapConverter
-// {
-//     static PyObject* convert(const MetaMap& metaMap)
-//     {
-//         py::dict ret;
-//         for (MetaMap::ConstMetaIterator it = metaMap.beginMeta();
-//             it != metaMap.endMeta(); ++it)
-//         {
-//             if (Metadata::Ptr meta = it->second) {
-//                 py::object obj(meta);
-//                 const std::string typeName = meta->typeName();
-//                 if (typeName == StringMetadata::staticTypeName()) {
-//                     obj = py::str(static_cast<StringMetadata&>(*meta).value());
-//                 } else if (typeName == DoubleMetadata::staticTypeName()) {
-//                     obj = py::object(static_cast<DoubleMetadata&>(*meta).value());
-//                 } else if (typeName == FloatMetadata::staticTypeName()) {
-//                     obj = py::object(static_cast<FloatMetadata&>(*meta).value());
-//                 } else if (typeName == Int32Metadata::staticTypeName()) {
-//                     obj = py::object(static_cast<Int32Metadata&>(*meta).value());
-//                 } else if (typeName == Int64Metadata::staticTypeName()) {
-//                     obj = py::object(static_cast<Int64Metadata&>(*meta).value());
-//                 } else if (typeName == BoolMetadata::staticTypeName()) {
-//                     obj = py::object(static_cast<BoolMetadata&>(*meta).value());
-//                 } else if (typeName == Vec2DMetadata::staticTypeName()) {
-//                     const Vec2d v = static_cast<Vec2DMetadata&>(*meta).value();
-//                     obj = py::make_tuple(v[0], v[1]);
-//                 } else if (typeName == Vec2IMetadata::staticTypeName()) {
-//                     const Vec2i v = static_cast<Vec2IMetadata&>(*meta).value();
-//                     obj = py::make_tuple(v[0], v[1]);
-//                 } else if (typeName == Vec2SMetadata::staticTypeName()) {
-//                     const Vec2s v = static_cast<Vec2SMetadata&>(*meta).value();
-//                     obj = py::make_tuple(v[0], v[1]);
-//                 } else if (typeName == Vec3DMetadata::staticTypeName()) {
-//                     const Vec3d v = static_cast<Vec3DMetadata&>(*meta).value();
-//                     obj = py::make_tuple(v[0], v[1], v[2]);
-//                 } else if (typeName == Vec3IMetadata::staticTypeName()) {
-//                     const Vec3i v = static_cast<Vec3IMetadata&>(*meta).value();
-//                     obj = py::make_tuple(v[0], v[1], v[2]);
-//                 } else if (typeName == Vec3SMetadata::staticTypeName()) {
-//                     const Vec3s v = static_cast<Vec3SMetadata&>(*meta).value();
-//                     obj = py::make_tuple(v[0], v[1], v[2]);
-//                 } else if (typeName == Vec4DMetadata::staticTypeName()) {
-//                     const Vec4d v = static_cast<Vec4DMetadata&>(*meta).value();
-//                     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
-//                 } else if (typeName == Vec4IMetadata::staticTypeName()) {
-//                     const Vec4i v = static_cast<Vec4IMetadata&>(*meta).value();
-//                     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
-//                 } else if (typeName == Vec4SMetadata::staticTypeName()) {
-//                     const Vec4s v = static_cast<Vec4SMetadata&>(*meta).value();
-//                     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
-//                 } else if (typeName == Mat4SMetadata::staticTypeName()) {
-//                     const Mat4s m = static_cast<Mat4SMetadata&>(*meta).value();
-//                     obj = MatConverter<Mat4s>::toList(m);
-//                 } else if (typeName == Mat4DMetadata::staticTypeName()) {
-//                     const Mat4d m = static_cast<Mat4DMetadata&>(*meta).value();
-//                     obj = MatConverter<Mat4d>::toList(m);
-//                 }
-//                 ret[it->first] = obj;
-//             }
-//         }
-//         Py_INCREF(ret.ptr());
-//         return ret.ptr();
-//     }
-
-//     static void* convertible(PyObject* obj)
-//     {
-//         return (PyMapping_Check(obj) ? obj : nullptr);
-//     }
-
-//     static void construct(PyObject* obj,
-//         py::converter::rvalue_from_python_stage1_data* data)
-//     {
-//         // Construct a MetaMap in the provided memory location.
-//         using StorageT = py::converter::rvalue_from_python_storage<MetaMap>;
-//         void* storage = reinterpret_cast<StorageT*>(data)->storage.bytes;
-//         new (storage) MetaMap; // placement new
-//         data->convertible = storage;
-//         MetaMap* metaMap = static_cast<MetaMap*>(storage);
-
-//         // Populate the map.
-//         py::dict pyDict(pyutil::pyBorrow(obj));
-//         py::list keys = pyDict.keys();
-//         for (size_t i = 0, N = py::len(keys); i < N; ++i) {
-//             std::string name;
-//             py::object key = keys[i];
-//             if (py::extract<std::string>(key).check()) {
-//                 name = py::extract<std::string>(key);
-//             } else {
-//                 const std::string
-//                     keyAsStr = py::extract<std::string>(key.attr("__str__")()),
-//                     keyType = pyutil::className(key);
-//                 PyErr_Format(PyExc_TypeError,
-//                     "expected string as metadata name, found object"
-//                     " \"%s\" of type %s", keyAsStr.c_str(), keyType.c_str());
-//                 py::throw_error_already_set();
-//             }
-
-//             // Note: the order of the following tests is significant, as it
-//             // avoids unnecessary type promotion (e.g., of ints to floats).
-//             py::object val = pyDict[keys[i]];
-//             Metadata::Ptr value;
-//             if (py::extract<std::string>(val).check()) {
-//                 value.reset(new StringMetadata(py::extract<std::string>(val)));
-//             } else if (bool(PyBool_Check(val.ptr()))) {
-//                 value.reset(new BoolMetadata(py::extract<bool>(val)));
-//             } else if (py::extract<Int64>(val).check()) {
-//                 const Int64 n = py::extract<Int64>(val);
-//                 if (n <= std::numeric_limits<Int32>::max()
-//                     && n >= std::numeric_limits<Int32>::min())
-//                 {
-//                     value.reset(new Int32Metadata(static_cast<Int32>(n)));
-//                 } else {
-//                     value.reset(new Int64Metadata(n));
-//                 }
-//             //} else if (py::extract<float>(val).check()) {
-//             //    value.reset(new FloatMetadata(py::extract<float>(val)));
-//             } else if (py::extract<double>(val).check()) {
-//                 value.reset(new DoubleMetadata(py::extract<double>(val)));
-//             } else if (py::extract<Vec2i>(val).check()) {
-//                 value.reset(new Vec2IMetadata(py::extract<Vec2i>(val)));
-//             } else if (py::extract<Vec2d>(val).check()) {
-//                 value.reset(new Vec2DMetadata(py::extract<Vec2d>(val)));
-//             } else if (py::extract<Vec2s>(val).check()) {
-//                 value.reset(new Vec2SMetadata(py::extract<Vec2s>(val)));
-//             } else if (py::extract<Vec3i>(val).check()) {
-//                 value.reset(new Vec3IMetadata(py::extract<Vec3i>(val)));
-//             } else if (py::extract<Vec3d>(val).check()) {
-//                 value.reset(new Vec3DMetadata(py::extract<Vec3d>(val)));
-//             } else if (py::extract<Vec3s>(val).check()) {
-//                 value.reset(new Vec3SMetadata(py::extract<Vec3s>(val)));
-//             } else if (py::extract<Vec4i>(val).check()) {
-//                 value.reset(new Vec4IMetadata(py::extract<Vec4i>(val)));
-//             } else if (py::extract<Vec4d>(val).check()) {
-//                 value.reset(new Vec4DMetadata(py::extract<Vec4d>(val)));
-//             } else if (py::extract<Vec4s>(val).check()) {
-//                 value.reset(new Vec4SMetadata(py::extract<Vec4s>(val)));
-//             } else if (py::extract<Mat4d>(val).check()) {
-//                 value.reset(new Mat4DMetadata(py::extract<Mat4d>(val)));
-//             } else if (py::extract<Mat4s>(val).check()) {
-//                 value.reset(new Mat4SMetadata(py::extract<Mat4s>(val)));
-//             } else if (py::extract<Metadata::Ptr>(val).check()) {
-//                 value = py::extract<Metadata::Ptr>(val);
-//             } else {
-//                 const std::string
-//                     valAsStr = py::extract<std::string>(val.attr("__str__")()),
-//                     valType = pyutil::className(val);
-//                 PyErr_Format(PyExc_TypeError,
-//                     "metadata value \"%s\" of type %s is not allowed",
-//                     valAsStr.c_str(), valType.c_str());
-//                 py::throw_error_already_set();
-//             }
-//             if (value) metaMap->insertMeta(name, *value);
-//         }
-//     }
-
-//     static void registerConverter()
-//     {
-//         py::to_python_converter<MetaMap, MetaMapConverter>();
-//         py::converter::registry::push_back(
-//             &MetaMapConverter::convertible,
-//             &MetaMapConverter::construct,
-//             py::type_id<MetaMap>());
-//     }
-// }; // struct MetaMapConverter
 
 
 // ////////////////////////////////////////
@@ -546,7 +491,7 @@ namespace pybind11 { namespace detail {
 //     if (dictObj.is_none()) {
 //         vdbFile.write(gridVec);
 //     } else {
-//         MetaMap metadata = py::extract<MetaMap>(dictObj);
+//         MetaMap metadata = py::cast<MetaMap>(dictObj);
 //         vdbFile.write(gridVec, metadata);
 //     }
 //     vdbFile.close();
@@ -561,51 +506,43 @@ namespace pybind11 { namespace detail {
 // void setProgramName(py::object, bool);
 
 
-// std::string
-// getLoggingLevel()
-// {
-//     switch (logging::getLevel()) {
-//         case logging::Level::Debug: return "debug";
-//         case logging::Level::Info:  return "info";
-//         case logging::Level::Warn:  return "warn";
-//         case logging::Level::Error: return "error";
-//         case logging::Level::Fatal: break;
-//     }
-//     return "fatal";
-// }
+std::string
+getLoggingLevel()
+{
+    switch (logging::getLevel()) {
+        case logging::Level::Debug: return "debug";
+        case logging::Level::Info:  return "info";
+        case logging::Level::Warn:  return "warn";
+        case logging::Level::Error: return "error";
+        case logging::Level::Fatal: break;
+    }
+    return "fatal";
+}
 
 
-// void
-// setLoggingLevel(py::object pyLevelObj)
-// {
-//     std::string levelStr;
-//     if (!py::extract<py::str>(pyLevelObj).check()) {
-//         levelStr = py::extract<std::string>(pyLevelObj.attr("__str__")());
-//     } else {
-//         const py::str pyLevelStr =
-//             py::extract<py::str>(pyLevelObj.attr("lower")().attr("lstrip")("-"));
-//         levelStr = py::extract<std::string>(pyLevelStr);
-//         if (levelStr == "debug") { logging::setLevel(logging::Level::Debug); return; }
-//         else if (levelStr == "info") { logging::setLevel(logging::Level::Info); return; }
-//         else if (levelStr == "warn") { logging::setLevel(logging::Level::Warn); return; }
-//         else if (levelStr == "error") { logging::setLevel(logging::Level::Error); return; }
-//         else if (levelStr == "fatal") { logging::setLevel(logging::Level::Fatal); return; }
-//     }
-//     PyErr_Format(PyExc_ValueError,
-//         "expected logging level \"debug\", \"info\", \"warn\", \"error\", or \"fatal\","
-//         " got \"%s\"", levelStr.c_str());
-//     py::throw_error_already_set();
-// }
+void
+setLoggingLevel(std::string levelStr)
+{
+    if (levelStr == "debug") { logging::setLevel(logging::Level::Debug); }
+    else if (levelStr == "info") { logging::setLevel(logging::Level::Info); }
+    else if (levelStr == "warn") { logging::setLevel(logging::Level::Warn); }
+    else if (levelStr == "error") { logging::setLevel(logging::Level::Error); }
+    else if (levelStr == "fatal") { logging::setLevel(logging::Level::Fatal); }
+    else {
+        throw py::value_error(
+            "expected logging level \"debug\", \"info\", \"warn\", \"error\", or \"fatal\"");
+    }
+}
 
 
 // void
 // setProgramName(py::object nameObj, bool color)
 // {
-//     if (py::extract<std::string>(nameObj).check()) {
-//         logging::setProgramName(py::extract<std::string>(nameObj), color);
+//     if (py::cast<std::string>(nameObj).check()) {
+//         logging::setProgramName(py::cast<std::string>(nameObj), color);
 //     } else {
 //         const std::string
-//             str = py::extract<std::string>(nameObj.attr("__str__")()),
+//             str = py::cast<std::string>(nameObj.attr("__str__")()),
 //             typ = pyutil::className(nameObj).c_str();
 //         PyErr_Format(PyExc_TypeError,
 //             "expected string as program name, got \"%s\" of type %s",
@@ -815,16 +752,16 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
    //      "Write a grid or a sequence of grids and, optionally, a dict\n"
    //      "of (name, value) metadata pairs to a .vdb file.");
 
-   // m.def("getLoggingLevel", &_openvdbmodule::getLoggingLevel,
-   //      "getLoggingLevel() -> str\n\n"
-   //      "Return the severity threshold (\"debug\", \"info\", \"warn\", \"error\",\n"
-   //      "or \"fatal\") for error messages.");
-   //  m.def("setLoggingLevel", &_openvdbmodule::setLoggingLevel,
-   //      (py::arg("level")),
-   //      "setLoggingLevel(level)\n\n"
-   //      "Specify the severity threshold (\"debug\", \"info\", \"warn\", \"error\",\n"
-   //      "or \"fatal\") for error messages.  Messages of lower severity\n"
-   //      "will be suppressed.");
+   m.def("getLoggingLevel", &getLoggingLevel,
+        "getLoggingLevel() -> str\n\n"
+        "Return the severity threshold (\"debug\", \"info\", \"warn\", \"error\",\n"
+        "or \"fatal\") for error messages.");
+    m.def("setLoggingLevel", &setLoggingLevel,
+        (py::arg("level")),
+        "setLoggingLevel(level)\n\n"
+        "Specify the severity threshold (\"debug\", \"info\", \"warn\", \"error\",\n"
+        "or \"fatal\") for error messages.  Messages of lower severity\n"
+        "will be suppressed.");
    //  m.def("setProgramName", &_openvdbmodule::setProgramName,
    //      (py::arg("name"), py::arg("color") = true),
    //      "setProgramName(name, color=True)\n\n"

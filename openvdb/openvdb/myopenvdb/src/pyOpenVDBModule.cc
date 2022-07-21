@@ -521,13 +521,13 @@ getLoggingLevel()
 
 
 void
-setLoggingLevel(std::string levelStr)
+setLoggingLevel(std::string level)
 {
-    if (levelStr == "debug") { logging::setLevel(logging::Level::Debug); }
-    else if (levelStr == "info") { logging::setLevel(logging::Level::Info); }
-    else if (levelStr == "warn") { logging::setLevel(logging::Level::Warn); }
-    else if (levelStr == "error") { logging::setLevel(logging::Level::Error); }
-    else if (levelStr == "fatal") { logging::setLevel(logging::Level::Fatal); }
+    if (level == "debug") { logging::setLevel(logging::Level::Debug); }
+    else if (level == "info") { logging::setLevel(logging::Level::Info); }
+    else if (level == "warn") { logging::setLevel(logging::Level::Warn); }
+    else if (level == "error") { logging::setLevel(logging::Level::Error); }
+    else if (level == "fatal") { logging::setLevel(logging::Level::Fatal); }
     else {
         throw py::value_error(
             "expected logging level \"debug\", \"info\", \"warn\", \"error\", or \"fatal\"");
@@ -535,21 +535,11 @@ setLoggingLevel(std::string levelStr)
 }
 
 
-// void
-// setProgramName(py::object nameObj, bool color)
-// {
-//     if (py::cast<std::string>(nameObj).check()) {
-//         logging::setProgramName(py::cast<std::string>(nameObj), color);
-//     } else {
-//         const std::string
-//             str = py::cast<std::string>(nameObj.attr("__str__")()),
-//             typ = pyutil::className(nameObj).c_str();
-//         PyErr_Format(PyExc_TypeError,
-//             "expected string as program name, got \"%s\" of type %s",
-//             str.c_str(), typ.c_str());
-//         py::throw_error_already_set();
-//     }
-// }
+void
+setProgramName(std::string name, bool color)
+{
+    logging::setProgramName(name, color);
+}
 
 
 // ////////////////////////////////////////
@@ -762,11 +752,11 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
         "Specify the severity threshold (\"debug\", \"info\", \"warn\", \"error\",\n"
         "or \"fatal\") for error messages.  Messages of lower severity\n"
         "will be suppressed.");
-   //  m.def("setProgramName", &_openvdbmodule::setProgramName,
-   //      (py::arg("name"), py::arg("color") = true),
-   //      "setProgramName(name, color=True)\n\n"
-   //      "Specify the program name to be displayed in error messages,\n"
-   //      "and optionally specify whether to print error messages in color.");
+    m.def("setProgramName", &setProgramName,
+        py::arg("name"), py::arg("color") = true,
+        "setProgramName(name, color=True)\n\n"
+        "Specify the program name to be displayed in error messages,\n"
+        "and optionally specify whether to print error messages in color.");
 
    //  // Add some useful module-level constants.
    //  py::scope().attr("LIBRARY_VERSION") = py::make_tuple(

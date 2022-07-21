@@ -114,110 +114,51 @@ namespace pybind11 { namespace detail {
         }
     };
 
-    // type_caster<openvdb::Vec2i, openvdb::Vec2i::value_type>;
-    // _openvdbmodule::VecConverter<Vec2I>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec2s>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec2d>::registerConverter();
 
-    // _openvdbmodule::VecConverter<Vec3i>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec3I>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec3s>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec3d>::registerConverter();
+    /// Helper class to convert between a 2D Python numeric sequence
+    /// (tuple, list, etc.) and an openvdb::Mat
+    template <> struct type_caster<openvdb::Mat4s> {
+    public:
+        PYBIND11_TYPE_CASTER(openvdb::Mat4s, const_name("MatT"));
 
-    // _openvdbmodule::VecConverter<Vec4i>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec4I>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec4s>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec4d>::registerConverter();
+        bool load(handle src, bool) {
+            PyObject *obj = src.ptr();
+            if (!PySequence_Check(obj)) {
+                return false;
+            }
+            // value = openvdb::Mat4s::zero();
+            if (py::len(obj) == openvdb::Mat4s::size) {
+                for (int i = 0; i < openvdb::Mat4s::size; ++i) {
+                    PyObject *rowObj = PySequence_GetItem(obj, i);
+                    if (!PySequence_Check(rowObj)) {
+                        return false;
+                    }
+                    if (py::len(rowObj) != openvdb::Mat4s::size) {
+                        return false;
+                    }
+                    for (int j = 0; j < openvdb::Mat4s::size; ++j) {
+                        value(i, j) = py::cast<typename openvdb::Mat4s::value_type>(PySequence_GetItem(rowObj, j));
+                    }
+                }
+            }
+            return !(PyErr_Occurred());
+        }
 
+        /// Return the given matrix as a Python list of lists.
+        static handle cast(openvdb::Mat4s src, return_value_policy, handle) {
+            py::list obj;
+            for (int i = 0; i < openvdb::Mat4s::size; ++i) {
+                py::list rowObj;
+                for (int j = 0; j < openvdb::Mat4s::size; ++j) {
+                    rowObj.append(src(i, j));
+                }
+                obj.append(rowObj);
+            }
+            return std::move(obj);
+        }
+    };
 
 }} // namespace pybind11::detail
-
-
-// ////////////////////////////////////////
-
-
-// /// Helper class to convert between a 2D Python numeric sequence
-// /// (tuple, list, etc.) and an openvdb::Mat
-// template<typename MatT>
-// struct MatConverter
-// {
-//     /// Return the given matrix as a Python list of lists.
-//     static py::object toList(const MatT& m)
-//     {
-//         py::list obj;
-//         for (int i = 0; i < MatT::size; ++i) {
-//             py::list rowObj;
-//             for (int j = 0; j < MatT::size; ++j) { rowObj.append(m(i, j)); }
-//             obj.append(rowObj);
-//         }
-//         return std::move(obj);
-//     }
-
-//     /// Extract a matrix from a Python sequence of numeric sequences.
-//     static MatT fromSeq(py::object obj)
-//     {
-//         MatT m = MatT::zero();
-//         if (py::len(obj) == MatT::size) {
-//             for (int i = 0; i < MatT::size; ++i) {
-//                 py::object rowObj = obj[i];
-//                 if (py::len(rowObj) != MatT::size) return MatT::zero();
-//                 for (int j = 0; j < MatT::size; ++j) {
-//                     m(i, j) = py::extract<typename MatT::value_type>(rowObj[j]);
-//                 }
-//             }
-//         }
-//         return m;
-//     }
-
-//     static PyObject* convert(const MatT& m)
-//     {
-//         py::object obj = toList(m);
-//         Py_INCREF(obj.ptr());
-//         return obj.ptr();
-//     }
-
-//     static void* convertible(PyObject* obj)
-//     {
-//         if (!PySequence_Check(obj)) return nullptr; // not a Python sequence
-
-//         Py_ssize_t len = PySequence_Length(obj);
-//         if (len != MatT::size) return nullptr;
-
-//         py::object seq = pyutil::pyBorrow(obj);
-//         for (int i = 0; i < MatT::size; ++i) {
-//             py::object rowObj = seq[i];
-//             if (py::len(rowObj) != MatT::size) return nullptr;
-//             // Check that all elements of the Python sequence are convertible
-//             // to the Mat's value type.
-//             for (int j = 0; j < MatT::size; ++j) {
-//                 if (!py::extract<typename MatT::value_type>(rowObj[j]).check()) {
-//                     return nullptr;
-//                 }
-//             }
-//         }
-//         return obj;
-//     }
-
-//     static void construct(PyObject* obj,
-//         py::converter::rvalue_from_python_stage1_data* data)
-//     {
-//         // Construct a Mat in the provided memory location.
-//         using StorageT = py::converter::rvalue_from_python_storage<MatT>;
-//         void* storage = reinterpret_cast<StorageT*>(data)->storage.bytes;
-//         new (storage) MatT; // placement new
-//         data->convertible = storage;
-//         *(static_cast<MatT*>(storage)) = fromSeq(pyutil::pyBorrow(obj));
-//     }
-
-//     static void registerConverter()
-//     {
-//         py::to_python_converter<MatT, MatConverter<MatT> >();
-//         py::converter::registry::push_back(
-//             &MatConverter<MatT>::convertible,
-//             &MatConverter<MatT>::construct,
-//             py::type_id<MatT>());
-//     }
-// }; // struct MatConverter
 
 
 // ////////////////////////////////////////

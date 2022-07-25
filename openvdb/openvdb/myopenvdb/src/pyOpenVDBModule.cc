@@ -203,7 +203,7 @@ namespace pybind11 { namespace detail {
     /// the various Metadata types.
     template <> struct type_caster<MetaMap> {
     public:
-        PYBIND11_TYPE_CASTER(MetaMap, const_name("MetaMapT"));
+        PYBIND11_TYPE_CASTER(MetaMap, const_name("MetaMap"));
 
         /// Convert from a Python object to a PointIndex.
         bool load(handle src, bool) {

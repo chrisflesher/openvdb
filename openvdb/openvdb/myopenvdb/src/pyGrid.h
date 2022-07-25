@@ -538,42 +538,42 @@ expandIndexRange(GridType& grid, py::object coordObj)
 ////////////////////////////////////////
 
 
-// inline py::dict
-// getAllMetadata(GridBase::ConstPtr grid)
-// {
-//     if (grid) return py::dict(static_cast<const MetaMap&>(*grid));
-//     return py::dict();
-// }
+inline py::dict
+getAllMetadata(GridBase::ConstPtr grid)
+{
+    if (grid) return py::cast(static_cast<const MetaMap&>(*grid));
+    return py::dict();
+}
 
 
-// inline void
-// replaceAllMetadata(GridBase::Ptr grid, const MetaMap& metadata)
-// {
-//     if (grid) {
-//         grid->clearMetadata();
-//         for (MetaMap::ConstMetaIterator it = metadata.beginMeta();
-//             it != metadata.endMeta(); ++it)
-//         {
-//             if (it->second) grid->insertMeta(it->first, *it->second);
-//         }
-//     }
-// }
+inline void
+replaceAllMetadata(GridBase::Ptr grid, const MetaMap& metadata)
+{
+    if (grid) {
+        grid->clearMetadata();
+        for (MetaMap::ConstMetaIterator it = metadata.beginMeta();
+            it != metadata.endMeta(); ++it)
+        {
+            if (it->second) grid->insertMeta(it->first, *it->second);
+        }
+    }
+}
 
 
-// inline void
-// updateMetadata(GridBase::Ptr grid, const MetaMap& metadata)
-// {
-//     if (grid) {
-//         for (MetaMap::ConstMetaIterator it = metadata.beginMeta();
-//             it != metadata.endMeta(); ++it)
-//         {
-//             if (it->second) {
-//                 grid->removeMeta(it->first);
-//                 grid->insertMeta(it->first, *it->second);
-//             }
-//         }
-//     }
-// }
+inline void
+updateMetadata(GridBase::Ptr grid, const MetaMap& metadata)
+{
+    if (grid) {
+        for (MetaMap::ConstMetaIterator it = metadata.beginMeta();
+            it != metadata.endMeta(); ++it)
+        {
+            if (it->second) {
+                grid->removeMeta(it->first);
+                grid->insertMeta(it->first, *it->second);
+            }
+        }
+    }
+}
 
 
 // inline py::dict
@@ -2196,19 +2196,16 @@ exportGrid(py::module_ &m)
                 "Return an accessor that provides random read-only access\n"
                 "to this grid's voxels.").c_str())
 
-            //
-            // Metadata
-            //
-            // .def_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
-            //     "dict of this grid's metadata\n\n"
-            //     "Setting this attribute replaces all of this grid's metadata,\n"
-            //     "but mutating it in place has no effect on the grid, since\n"
-            //     "the value of this attribute is a only a copy of the metadata.\n"
-            //     "Use either indexing or updateMetadata() to mutate metadata in place.")
-            // .def("updateMetadata", &pyGrid::updateMetadata,
-            //     "updateMetadata(dict)\n\n"
-            //     "Add metadata to this grid, replacing any existing items\n"
-            //     "having the same names as the new items.")
+            .def_property("metadata", &pyGrid::getAllMetadata, &pyGrid::replaceAllMetadata,
+                "dict of this grid's metadata\n\n"
+                "Setting this attribute replaces all of this grid's metadata,\n"
+                "but mutating it in place has no effect on the grid, since\n"
+                "the value of this attribute is a only a copy of the metadata.\n"
+                "Use either indexing or updateMetadata() to mutate metadata in place.")
+            .def("updateMetadata", &pyGrid::updateMetadata,
+                "updateMetadata(dict)\n\n"
+                "Add metadata to this grid, replacing any existing items\n"
+                "having the same names as the new items.")
 
             // .def("addStatsMetadata", &GridType::addStatsMetadata,
             //     "addStatsMetadata()\n\n"

@@ -458,20 +458,20 @@ readGridMetadataFromFile(const std::string& filename, const std::string& gridNam
 }
 
 
-// py::list
-// readAllGridMetadataFromFile(const std::string& filename)
-// {
-//     io::File vdbFile(filename);
-//     vdbFile.open();
-//     GridPtrVecPtr grids = vdbFile.readAllGridMetadata();
-//     vdbFile.close();
+py::list
+readAllGridMetadataFromFile(const std::string& filename)
+{
+    io::File vdbFile(filename);
+    vdbFile.open();
+    GridPtrVecPtr grids = vdbFile.readAllGridMetadata();
+    vdbFile.close();
 
-//     py::list gridList;
-//     for (GridPtrVec::const_iterator it = grids->begin(); it != grids->end(); ++it) {
-//         gridList.append(pyGrid::getGridFromGridBase(*it));
-//     }
-//     return gridList;
-// }
+    py::list gridList;
+    for (GridPtrVec::const_iterator it = grids->begin(); it != grids->end(); ++it) {
+        gridList.append(pyGrid::getGridFromGridBase(*it));
+    }
+    return gridList;
+}
 
 
 // void
@@ -730,19 +730,19 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
         "Read a single grid's metadata and transform (but not its tree)\n"
         "from a .vdb file.");
 
-   //  m.def("readAllGridMetadata",
-   //      &_openvdbmodule::readAllGridMetadataFromFile,
-   //      py::arg("filename"),
-   //      "readAllGridMetadata(filename) -> list\n\n"
-   //      "Read a .vdb file and return a list of grids populated with\n"
-   //      "their metadata and transforms, but not their trees.");
+    m.def("readAllGridMetadata",
+        &readAllGridMetadataFromFile,
+        py::arg("filename"),
+        "readAllGridMetadata(filename) -> list\n\n"
+        "Read a .vdb file and return a list of grids populated with\n"
+        "their metadata and transforms, but not their trees.");
 
-   //  m.def("write",
-   //      &_openvdbmodule::writeToFile,
-   //      (py::arg("filename"), py::arg("grids"), py::arg("metadata") = py::object()),
-   //      "write(filename, grids, metadata=None)\n\n"
-   //      "Write a grid or a sequence of grids and, optionally, a dict\n"
-   //      "of (name, value) metadata pairs to a .vdb file.");
+    // m.def("write",
+    //     &writeToFile,
+    //     py::arg("filename"), py::arg("grids"), py::arg("metadata") = py::none,
+    //     "write(filename, grids, metadata=None)\n\n"
+    //     "Write a grid or a sequence of grids and, optionally, a dict\n"
+    //     "of (name, value) metadata pairs to a .vdb file.");
 
    m.def("getLoggingLevel", &getLoggingLevel,
         "getLoggingLevel() -> str\n\n"

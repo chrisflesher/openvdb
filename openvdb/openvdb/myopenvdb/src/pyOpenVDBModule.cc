@@ -221,7 +221,7 @@ namespace pybind11 { namespace detail {
                 // avoids unnecessary type promotion (e.g., of ints to floats).
                 py::object val = py::cast<py::object>(item.second);
                 Metadata::Ptr meta;
-                while(true) {
+                while (true) {  // should only execute once
                     try { meta.reset(new StringMetadata(py::cast<std::string>(val))); break; } catch (py::cast_error) {}
                     try { meta.reset(new BoolMetadata(py::cast<bool>(val))); break; } catch (py::cast_error) {}
                     try { meta.reset(new Int64Metadata(py::cast<Int64>(val))); break; } catch (py::cast_error) {}
@@ -282,51 +282,40 @@ namespace pybind11 { namespace detail {
                         obj = py::cast(static_cast<Int64Metadata&>(*meta).value());
                     } else if (typeName == BoolMetadata::staticTypeName()) {
                         obj = py::cast(static_cast<BoolMetadata&>(*meta).value());
-                    }
-                    // else if (typeName == Vec2DMetadata::staticTypeName()) {
-                    //     const Vec2d v = static_cast<Vec2DMetadata&>(*meta).value();
-                    //     obj = py::make_tuple(v[0], v[1]);
-                    // }
-                    else if (typeName == Vec2IMetadata::staticTypeName()) {
+                    } else if (typeName == Vec2DMetadata::staticTypeName()) {
+                        const Vec2d v = static_cast<Vec2DMetadata&>(*meta).value();
+                        obj = py::cast(v);
+                    } else if (typeName == Vec2IMetadata::staticTypeName()) {
                         const Vec2i v = static_cast<Vec2IMetadata&>(*meta).value();
                         obj = py::cast(v);
-                    }
-                    // else if (typeName == Vec2SMetadata::staticTypeName()) {
-                    //     const Vec2s v = static_cast<Vec2SMetadata&>(*meta).value();
-                    //     obj = py::make_tuple(v[0], v[1]);
-                    // }
-                    // else if (typeName == Vec3DMetadata::staticTypeName()) {
-                    //     const Vec3d v = static_cast<Vec3DMetadata&>(*meta).value();
-                    //     obj = py::make_tuple(v[0], v[1], v[2]);
-                    // }
-                    // else if (typeName == Vec3IMetadata::staticTypeName()) {
-                    //     const Vec3i v = static_cast<Vec3IMetadata&>(*meta).value();
-                    //     obj = py::make_tuple(v[0], v[1], v[2]);
-                    // }
-                    // else if (typeName == Vec3SMetadata::staticTypeName()) {
-                    //     const Vec3s v = static_cast<Vec3SMetadata&>(*meta).value();
-                    //     obj = py::make_tuple(v[0], v[1], v[2]);
-                    // }
-                    // else if (typeName == Vec4DMetadata::staticTypeName()) {
-                    //     const Vec4d v = static_cast<Vec4DMetadata&>(*meta).value();
-                    //     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
-                    // }
-                    // else if (typeName == Vec4IMetadata::staticTypeName()) {
-                    //     const Vec4i v = static_cast<Vec4IMetadata&>(*meta).value();
-                    //     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
-                    // }
-                    // else if (typeName == Vec4SMetadata::staticTypeName()) {
-                    //     const Vec4s v = static_cast<Vec4SMetadata&>(*meta).value();
-                    //     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
-                    // }
-                    else if (typeName == Mat4SMetadata::staticTypeName()) {
+                    } else if (typeName == Vec2SMetadata::staticTypeName()) {
+                        const Vec2s v = static_cast<Vec2SMetadata&>(*meta).value();
+                        obj = py::cast(v);
+                    } else if (typeName == Vec3DMetadata::staticTypeName()) {
+                        const Vec3d v = static_cast<Vec3DMetadata&>(*meta).value();
+                        obj = py::cast(v);
+                    } else if (typeName == Vec3IMetadata::staticTypeName()) {
+                        const Vec3i v = static_cast<Vec3IMetadata&>(*meta).value();
+                        obj = py::cast(v);
+                    } else if (typeName == Vec3SMetadata::staticTypeName()) {
+                        const Vec3s v = static_cast<Vec3SMetadata&>(*meta).value();
+                        obj = py::cast(v);
+                    } else if (typeName == Vec4DMetadata::staticTypeName()) {
+                        const Vec4d v = static_cast<Vec4DMetadata&>(*meta).value();
+                        obj = py::cast(v);
+                    } else if (typeName == Vec4IMetadata::staticTypeName()) {
+                        const Vec4i v = static_cast<Vec4IMetadata&>(*meta).value();
+                        obj = py::cast(v);
+                    } else if (typeName == Vec4SMetadata::staticTypeName()) {
+                        const Vec4s v = static_cast<Vec4SMetadata&>(*meta).value();
+                        obj = py::cast(v);
+                    } else if (typeName == Mat4SMetadata::staticTypeName()) {
                         const Mat4s m = static_cast<Mat4SMetadata&>(*meta).value();
                         obj = py::cast(m);
+                    } else if (typeName == Mat4DMetadata::staticTypeName()) {
+                        const Mat4d m = static_cast<Mat4DMetadata&>(*meta).value();
+                        obj = py::cast(m);
                     }
-                    // else if (typeName == Mat4DMetadata::staticTypeName()) {
-                    //     const Mat4d m = static_cast<Mat4DMetadata&>(*meta).value();
-                    //     obj = MatConverter<Mat4d>::toList(m);
-                    // }
                     ret[py::str(it->first)] = obj;
                 }
             }

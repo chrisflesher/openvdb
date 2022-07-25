@@ -223,41 +223,60 @@ namespace pybind11 { namespace detail {
                 // avoids unnecessary type promotion (e.g., of ints to floats).
                 py::object val = py::cast<py::object>(item.second);
                 Metadata::Ptr meta;
-                while (true) {  // should only execute once
-                    try { meta.reset(new StringMetadata(py::cast<std::string>(val))); break; } catch (py::cast_error) {}
-                    try { meta.reset(new BoolMetadata(py::cast<bool>(val))); break; } catch (py::cast_error) {}
-                    try { meta.reset(new Int64Metadata(py::cast<Int64>(val))); break; } catch (py::cast_error) {}
-                    // try { meta.reset(new FloatMetadata(py::cast<float>(val))); break; } catch (py::cast_error) {}
-                    try { meta.reset(new DoubleMetadata(py::cast<double>(val))); break; } catch (py::cast_error) {}
-                    try { meta.reset(new Vec2IMetadata(py::cast<Vec2i>(val))); break; } catch (py::cast_error) {}
-                    try { meta.reset(new Mat4SMetadata(py::cast<Mat4s>(val))); break; } catch (py::cast_error) {}
+                while (true) {  // only executes once
+                    try {
+                        meta.reset(new StringMetadata(py::cast<std::string>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new BoolMetadata(py::cast<bool>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Int64Metadata(py::cast<Int64>(val))); break;
+                    } catch (py::cast_error) {}
+                    // try {
+                    //     meta.reset(new FloatMetadata(py::cast<float>(val))); break;
+                    // } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new DoubleMetadata(py::cast<double>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Vec2IMetadata(py::cast<Vec2i>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Vec2DMetadata(py::cast<Vec2d>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Vec2SMetadata(py::cast<Vec2s>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Vec3IMetadata(py::cast<Vec3i>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Vec3DMetadata(py::cast<Vec3d>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Vec3SMetadata(py::cast<Vec3s>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Vec4IMetadata(py::cast<Vec4i>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Vec4SMetadata(py::cast<Vec4s>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Vec4DMetadata(py::cast<Vec4d>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Mat4SMetadata(py::cast<Mat4s>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta.reset(new Mat4DMetadata(py::cast<Mat4d>(val))); break;
+                    } catch (py::cast_error) {}
+                    try {
+                        meta = py::cast<Metadata::Ptr>(val); break;
+                    } catch (py::cast_error) {}
                     throw py::type_error("metadata value is not allowed");
                 }
-                // } else if (py::cast<Vec2i>(val).check()) {
-                //     meta.reset(new Vec2IMetadata(py::cast<Vec2i>(val)));
-                // } else if (py::cast<Vec2d>(val).check()) {
-                //     meta.reset(new Vec2DMetadata(py::cast<Vec2d>(val)));
-                // } else if (py::cast<Vec2s>(val).check()) {
-                //     meta.reset(new Vec2SMetadata(py::cast<Vec2s>(val)));
-                // } else if (py::cast<Vec3i>(val).check()) {
-                //     meta.reset(new Vec3IMetadata(py::cast<Vec3i>(val)));
-                // } else if (py::cast<Vec3d>(val).check()) {
-                //     meta.reset(new Vec3DMetadata(py::cast<Vec3d>(val)));
-                // } else if (py::cast<Vec3s>(val).check()) {
-                //     meta.reset(new Vec3SMetadata(py::cast<Vec3s>(val)));
-                // } else if (py::cast<Vec4i>(val).check()) {
-                //     meta.reset(new Vec4IMetadata(py::cast<Vec4i>(val)));
-                // } else if (py::cast<Vec4d>(val).check()) {
-                //     meta.reset(new Vec4DMetadata(py::cast<Vec4d>(val)));
-                // } else if (py::cast<Vec4s>(val).check()) {
-                //     meta.reset(new Vec4SMetadata(py::cast<Vec4s>(val)));
-                // } else if (py::cast<Mat4d>(val).check()) {
-                //     meta.reset(new Mat4DMetadata(py::cast<Mat4d>(val)));
-                // } else if (py::cast<Mat4s>(val).check()) {
-                //     meta.reset(new Mat4SMetadata(py::cast<Mat4s>(val)));
-                // } else if (py::cast<Metadata::Ptr>(val).check()) {
-                //     meta = py::cast<Metadata::Ptr>(val);
-                // }
                 if (meta) {
                     value.insertMeta(name, *meta);
                 }

@@ -80,38 +80,37 @@ namespace pybind11 { namespace detail {
         }
     };
 
-
     /// Helper class to convert between a Python numeric sequence
     /// (tuple, list, etc.) and an openvdb::Vec
-    template <> struct type_caster<openvdb::Vec2i> {
+    template <typename VecT> struct vec_type_caster {
     public:
-        PYBIND11_TYPE_CASTER(openvdb::Vec2i, const_name("VecT"));
+        PYBIND11_TYPE_CASTER(VecT, const_name("VecT"));
 
         bool load(handle src, bool) {
             PyObject *obj = src.ptr();
             if (!PySequence_Check(obj)) {
                 return false;
             }
-            if (PySequence_Length(obj) != openvdb::Vec2i::size) {
+            if (PySequence_Length(obj) != VecT::size) {
                 return false;
             }
-            for (int n = 0; n < openvdb::Vec2i::size; ++n) {
-                value[n] = pyutil::getSequenceItem<openvdb::Vec2i::value_type>(obj, n);
+            for (int n = 0; n < VecT::size; ++n) {
+                value[n] = pyutil::getSequenceItem<typename VecT::value_type>(obj, n);
             }
             return !(PyErr_Occurred());
         }
 
-        static handle cast(openvdb::Vec2i src, return_value_policy, handle) {
+        static handle cast(VecT src, return_value_policy, handle) {
             OPENVDB_NO_UNREACHABLE_CODE_WARNING_BEGIN
             py::object obj;
-            switch (openvdb::Vec2i::size) { // compile-time constant
+            switch (VecT::size) { // compile-time constant
                 case 2: obj = py::make_tuple(src[0], src[1]); break;
                 case 3: obj = py::make_tuple(src[0], src[1], src[2]); break;
                 case 4: obj = py::make_tuple(src[0], src[1], src[2], src[3]); break;
                 default:
                 {
                     py::list lst;
-                    for (int n = 0; n < openvdb::Vec2i::size; ++n) lst.append(src[n]);
+                    for (int n = 0; n < VecT::size; ++n) lst.append(src[n]);
                     obj = lst;
                 }
             }
@@ -120,7 +119,18 @@ namespace pybind11 { namespace detail {
             return obj.ptr();
         }
     };
-
+    template <> struct type_caster<openvdb::Vec2i> : vec_type_caster<openvdb::Vec2i> {};
+    template <> struct type_caster<openvdb::Vec2I> : vec_type_caster<openvdb::Vec2I> {};
+    template <> struct type_caster<openvdb::Vec2s> : vec_type_caster<openvdb::Vec2s> {};
+    template <> struct type_caster<openvdb::Vec2d> : vec_type_caster<openvdb::Vec2d> {};
+    template <> struct type_caster<openvdb::Vec3i> : vec_type_caster<openvdb::Vec3i> {};
+    template <> struct type_caster<openvdb::Vec3I> : vec_type_caster<openvdb::Vec3I> {};
+    template <> struct type_caster<openvdb::Vec3s> : vec_type_caster<openvdb::Vec3s> {};
+    template <> struct type_caster<openvdb::Vec3d> : vec_type_caster<openvdb::Vec3d> {};
+    template <> struct type_caster<openvdb::Vec4i> : vec_type_caster<openvdb::Vec4i> {};
+    template <> struct type_caster<openvdb::Vec4I> : vec_type_caster<openvdb::Vec4I> {};
+    template <> struct type_caster<openvdb::Vec4s> : vec_type_caster<openvdb::Vec4s> {};
+    template <> struct type_caster<openvdb::Vec4d> : vec_type_caster<openvdb::Vec4d> {};
 
     /// Helper class to convert between a 2D Python numeric sequence
     /// (tuple, list, etc.) and an openvdb::Mat
@@ -250,66 +260,76 @@ namespace pybind11 { namespace detail {
                     value.insertMeta(name, *meta);
                 }
             }
+            return !(PyErr_Occurred());
         }
 
         /// @return a Python dict object equivalent to the given MetaMap.
         static handle cast(MetaMap src, return_value_policy, handle) {
-        //     py::dict ret;
-        //     for (MetaMap::ConstMetaIterator it = src.beginMeta(); it != src.endMeta(); ++it) {
-        //         if (Metadata::Ptr meta = it->second) {
-        //             py::object obj(meta);
-        //             const std::string typeName = meta->typeName();
-        //             if (typeName == StringMetadata::staticTypeName()) {
-        //                 obj = py::str(static_cast<StringMetadata&>(*meta).value());
-        //             } else if (typeName == DoubleMetadata::staticTypeName()) {
-        //                 obj = py::object(static_cast<DoubleMetadata&>(*meta).value());
-        //             } else if (typeName == FloatMetadata::staticTypeName()) {
-        //                 obj = py::object(static_cast<FloatMetadata&>(*meta).value());
-        //             } else if (typeName == Int32Metadata::staticTypeName()) {
-        //                 obj = py::object(static_cast<Int32Metadata&>(*meta).value());
-        //             } else if (typeName == Int64Metadata::staticTypeName()) {
-        //                 obj = py::object(static_cast<Int64Metadata&>(*meta).value());
-        //             } else if (typeName == BoolMetadata::staticTypeName()) {
-        //                 obj = py::object(static_cast<BoolMetadata&>(*meta).value());
-        //             } else if (typeName == Vec2DMetadata::staticTypeName()) {
-        //                 const Vec2d v = static_cast<Vec2DMetadata&>(*meta).value();
-        //                 obj = py::make_tuple(v[0], v[1]);
-        //             } else if (typeName == Vec2IMetadata::staticTypeName()) {
-        //                 const Vec2i v = static_cast<Vec2IMetadata&>(*meta).value();
-        //                 obj = py::make_tuple(v[0], v[1]);
-        //             } else if (typeName == Vec2SMetadata::staticTypeName()) {
-        //                 const Vec2s v = static_cast<Vec2SMetadata&>(*meta).value();
-        //                 obj = py::make_tuple(v[0], v[1]);
-        //             } else if (typeName == Vec3DMetadata::staticTypeName()) {
-        //                 const Vec3d v = static_cast<Vec3DMetadata&>(*meta).value();
-        //                 obj = py::make_tuple(v[0], v[1], v[2]);
-        //             } else if (typeName == Vec3IMetadata::staticTypeName()) {
-        //                 const Vec3i v = static_cast<Vec3IMetadata&>(*meta).value();
-        //                 obj = py::make_tuple(v[0], v[1], v[2]);
-        //             } else if (typeName == Vec3SMetadata::staticTypeName()) {
-        //                 const Vec3s v = static_cast<Vec3SMetadata&>(*meta).value();
-        //                 obj = py::make_tuple(v[0], v[1], v[2]);
-        //             } else if (typeName == Vec4DMetadata::staticTypeName()) {
-        //                 const Vec4d v = static_cast<Vec4DMetadata&>(*meta).value();
-        //                 obj = py::make_tuple(v[0], v[1], v[2], v[3]);
-        //             } else if (typeName == Vec4IMetadata::staticTypeName()) {
-        //                 const Vec4i v = static_cast<Vec4IMetadata&>(*meta).value();
-        //                 obj = py::make_tuple(v[0], v[1], v[2], v[3]);
-        //             } else if (typeName == Vec4SMetadata::staticTypeName()) {
-        //                 const Vec4s v = static_cast<Vec4SMetadata&>(*meta).value();
-        //                 obj = py::make_tuple(v[0], v[1], v[2], v[3]);
-        //             } else if (typeName == Mat4SMetadata::staticTypeName()) {
-        //                 const Mat4s m = static_cast<Mat4SMetadata&>(*meta).value();
-        //                 obj = MatConverter<Mat4s>::toList(m);
-        //             } else if (typeName == Mat4DMetadata::staticTypeName()) {
-        //                 const Mat4d m = static_cast<Mat4DMetadata&>(*meta).value();
-        //                 obj = MatConverter<Mat4d>::toList(m);
-        //             }
-        //             ret[it->first] = obj;
-        //         }
-        //     }
-        //     Py_INCREF(ret.ptr());
-        //     return ret.ptr();
+            py::dict ret;
+            for (MetaMap::ConstMetaIterator it = src.beginMeta(); it != src.endMeta(); ++it) {
+                if (Metadata::Ptr meta = it->second) {
+                    py::object obj;
+                    const std::string typeName = meta->typeName();
+                    if (typeName == StringMetadata::staticTypeName()) {
+                        obj = py::cast(static_cast<StringMetadata&>(*meta).value());
+                    } else if (typeName == DoubleMetadata::staticTypeName()) {
+                        obj = py::cast(static_cast<DoubleMetadata&>(*meta).value());
+                    } else if (typeName == FloatMetadata::staticTypeName()) {
+                        obj = py::cast(static_cast<FloatMetadata&>(*meta).value());
+                    } else if (typeName == Int32Metadata::staticTypeName()) {
+                        obj = py::cast(static_cast<Int32Metadata&>(*meta).value());
+                    } else if (typeName == Int64Metadata::staticTypeName()) {
+                        obj = py::cast(static_cast<Int64Metadata&>(*meta).value());
+                    } else if (typeName == BoolMetadata::staticTypeName()) {
+                        obj = py::cast(static_cast<BoolMetadata&>(*meta).value());
+                    }
+                    // else if (typeName == Vec2DMetadata::staticTypeName()) {
+                    //     const Vec2d v = static_cast<Vec2DMetadata&>(*meta).value();
+                    //     obj = py::make_tuple(v[0], v[1]);
+                    // }
+                    else if (typeName == Vec2IMetadata::staticTypeName()) {
+                        const Vec2i v = static_cast<Vec2IMetadata&>(*meta).value();
+                        obj = py::cast(v);
+                    }
+                    // else if (typeName == Vec2SMetadata::staticTypeName()) {
+                    //     const Vec2s v = static_cast<Vec2SMetadata&>(*meta).value();
+                    //     obj = py::make_tuple(v[0], v[1]);
+                    // }
+                    // else if (typeName == Vec3DMetadata::staticTypeName()) {
+                    //     const Vec3d v = static_cast<Vec3DMetadata&>(*meta).value();
+                    //     obj = py::make_tuple(v[0], v[1], v[2]);
+                    // }
+                    // else if (typeName == Vec3IMetadata::staticTypeName()) {
+                    //     const Vec3i v = static_cast<Vec3IMetadata&>(*meta).value();
+                    //     obj = py::make_tuple(v[0], v[1], v[2]);
+                    // }
+                    // else if (typeName == Vec3SMetadata::staticTypeName()) {
+                    //     const Vec3s v = static_cast<Vec3SMetadata&>(*meta).value();
+                    //     obj = py::make_tuple(v[0], v[1], v[2]);
+                    // }
+                    // else if (typeName == Vec4DMetadata::staticTypeName()) {
+                    //     const Vec4d v = static_cast<Vec4DMetadata&>(*meta).value();
+                    //     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
+                    // }
+                    // else if (typeName == Vec4IMetadata::staticTypeName()) {
+                    //     const Vec4i v = static_cast<Vec4IMetadata&>(*meta).value();
+                    //     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
+                    // }
+                    // else if (typeName == Vec4SMetadata::staticTypeName()) {
+                    //     const Vec4s v = static_cast<Vec4SMetadata&>(*meta).value();
+                    //     obj = py::make_tuple(v[0], v[1], v[2], v[3]);
+                    // }
+                    else if (typeName == Mat4SMetadata::staticTypeName()) {
+                        const Mat4s m = static_cast<Mat4SMetadata&>(*meta).value();
+                        obj = py::cast(m);
+                    }
+                    // else if (typeName == Mat4DMetadata::staticTypeName()) {
+                    //     const Mat4d m = static_cast<Mat4DMetadata&>(*meta).value();
+                    //     obj = MatConverter<Mat4d>::toList(m);
+                    // }
+                    ret[py::str(it->first)] = obj;
+                }
+            }
         }
     };
 

@@ -9,7 +9,7 @@
 #include <pybind11/pybind11.h>
 #include "openvdb/openvdb.h"
 // #include "pyopenvdb.h"
-// #include "pyGrid.h"
+#include "pyGrid.h"
 #include "pyutil.h"
 
 namespace py = pybind11;
@@ -392,78 +392,70 @@ namespace pybind11 { namespace detail {
 // ////////////////////////////////////////
 
 
-// py::object readFromFile(const std::string&, const std::string&);
-// py::tuple readAllFromFile(const std::string&);
-// py::dict readFileMetadata(const std::string&);
-// py::object readGridMetadataFromFile(const std::string&, const std::string&);
-// py::list readAllGridMetadataFromFile(const std::string&);
-// void writeToFile(const std::string&, py::object, py::object);
+py::object
+readFromFile(const std::string& filename, const std::string& gridName)
+{
+    io::File vdbFile(filename);
+    vdbFile.open();
+
+    if (!vdbFile.hasGrid(gridName)) {
+        PyErr_Format(PyExc_KeyError,
+            "file %s has no grid named \"%s\"",
+            filename.c_str(), gridName.c_str());
+        throw py::error_already_set();
+    }
+
+    return pyGrid::getGridFromGridBase(vdbFile.readGrid(gridName));
+}
 
 
-// py::object
-// readFromFile(const std::string& filename, const std::string& gridName)
-// {
-//     io::File vdbFile(filename);
-//     vdbFile.open();
+py::tuple
+readAllFromFile(const std::string& filename)
+{
+    io::File vdbFile(filename);
+    vdbFile.open();
 
-//     if (!vdbFile.hasGrid(gridName)) {
-//         PyErr_Format(PyExc_KeyError,
-//             "file %s has no grid named \"%s\"",
-//             filename.c_str(), gridName.c_str());
-//         py::throw_error_already_set();
-//     }
+    GridPtrVecPtr grids = vdbFile.getGrids();
+    MetaMap::Ptr metadata = vdbFile.getMetadata();
+    vdbFile.close();
 
-//     return pyGrid::getGridFromGridBase(vdbFile.readGrid(gridName));
-// }
+    py::list gridList;
+    for (GridPtrVec::const_iterator it = grids->begin(); it != grids->end(); ++it) {
+        gridList.append(pyGrid::getGridFromGridBase(*it));
+    }
 
-
-// py::tuple
-// readAllFromFile(const std::string& filename)
-// {
-//     io::File vdbFile(filename);
-//     vdbFile.open();
-
-//     GridPtrVecPtr grids = vdbFile.getGrids();
-//     MetaMap::Ptr metadata = vdbFile.getMetadata();
-//     vdbFile.close();
-
-//     py::list gridList;
-//     for (GridPtrVec::const_iterator it = grids->begin(); it != grids->end(); ++it) {
-//         gridList.append(pyGrid::getGridFromGridBase(*it));
-//     }
-
-//     return py::make_tuple(gridList, py::dict(*metadata));
-// }
+    return py::make_tuple(gridList, py::cast(*metadata));
+}
 
 
-// py::dict
-// readFileMetadata(const std::string& filename)
-// {
-//     io::File vdbFile(filename);
-//     vdbFile.open();
+py::dict
+readFileMetadata(const std::string& filename)
+{
+    io::File vdbFile(filename);
+    vdbFile.open();
 
-//     MetaMap::Ptr metadata = vdbFile.getMetadata();
-//     vdbFile.close();
+    MetaMap::Ptr metadata = vdbFile.getMetadata();
+    vdbFile.close();
 
-//     return py::dict(*metadata);
-// }
+    return py::cast(*metadata);
+}
 
 
-// py::object
-// readGridMetadataFromFile(const std::string& filename, const std::string& gridName)
-// {
-//     io::File vdbFile(filename);
-//     vdbFile.open();
+py::object
+readGridMetadataFromFile(const std::string& filename, const std::string& gridName)
+{
+    io::File vdbFile(filename);
+    vdbFile.open();
 
-//     if (!vdbFile.hasGrid(gridName)) {
-//         PyErr_Format(PyExc_KeyError,
-//             "file %s has no grid named \"%s\"",
-//             filename.c_str(), gridName.c_str());
-//         py::throw_error_already_set();
-//     }
+    if (!vdbFile.hasGrid(gridName)) {
+        PyErr_Format(PyExc_KeyError,
+            "file %s has no grid named \"%s\"",
+            filename.c_str(), gridName.c_str());
+        throw py::error_already_set();
+    }
 
-//     return pyGrid::getGridFromGridBase(vdbFile.readGridMetadata(gridName));
-// }
+    return pyGrid::getGridFromGridBase(vdbFile.readGridMetadata(gridName));
+}
 
 
 // py::list
@@ -712,31 +704,31 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
           "print(xyz) -> None\n\n"
           "Print yo int yo.");
 
-    // m.def("read",
-    //     &_openvdbmodule::readFromFile,
-    //     (py::arg("filename"), py::arg("gridname")),
-    //     "read(filename, gridname) -> Grid\n\n"
-    //     "Read a single grid from a .vdb file.");
+    m.def("read",
+        &readFromFile,
+        py::arg("filename"), py::arg("gridname"),
+        "read(filename, gridname) -> Grid\n\n"
+        "Read a single grid from a .vdb file.");
 
-   //  m.def("readAll",
-   //      &_openvdbmodule::readAllFromFile,
-   //      py::arg("filename"),
-   //      "readAll(filename) -> list, dict\n\n"
-   //      "Read a .vdb file and return a list of grids and\n"
-   //      "a dict of file-level metadata.");
+    m.def("readAll",
+        &readAllFromFile,
+        py::arg("filename"),
+        "readAll(filename) -> list, dict\n\n"
+        "Read a .vdb file and return a list of grids and\n"
+        "a dict of file-level metadata.");
 
-   //  m.def("readMetadata",
-   //      &_openvdbmodule::readFileMetadata,
-   //      py::arg("filename"),
-   //      "readMetadata(filename) -> dict\n\n"
-   //      "Read file-level metadata from a .vdb file.");
+    m.def("readMetadata",
+        &readFileMetadata,
+        py::arg("filename"),
+        "readMetadata(filename) -> dict\n\n"
+        "Read file-level metadata from a .vdb file.");
 
-   //  m.def("readGridMetadata",
-   //      &_openvdbmodule::readGridMetadataFromFile,
-   //      (m.arg("filename"), py::arg("gridname")),
-   //      "readGridMetadata(filename, gridname) -> Grid\n\n"
-   //      "Read a single grid's metadata and transform (but not its tree)\n"
-   //      "from a .vdb file.");
+    m.def("readGridMetadata",
+        &readGridMetadataFromFile,
+        py::arg("filename"), py::arg("gridname"),
+        "readGridMetadata(filename, gridname) -> Grid\n\n"
+        "Read a single grid's metadata and transform (but not its tree)\n"
+        "from a .vdb file.");
 
    //  m.def("readAllGridMetadata",
    //      &_openvdbmodule::readAllGridMetadataFromFile,

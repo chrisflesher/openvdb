@@ -134,27 +134,27 @@ namespace pybind11 { namespace detail {
 
     /// Helper class to convert between a 2D Python numeric sequence
     /// (tuple, list, etc.) and an openvdb::Mat
-    template <> struct type_caster<openvdb::Mat4s> {
+    template <typename MatT> struct mat_type_caster {
     public:
-        PYBIND11_TYPE_CASTER(openvdb::Mat4s, const_name("MatT"));
+        PYBIND11_TYPE_CASTER(MatT, const_name("MatT"));
 
         bool load(handle src, bool) {
             PyObject *obj = src.ptr();
             if (!PySequence_Check(obj)) {
                 return false;
             }
-            // value = openvdb::Mat4s::zero();
-            if (py::len(obj) == openvdb::Mat4s::size) {
-                for (int i = 0; i < openvdb::Mat4s::size; ++i) {
+            // value = MatT::zero();
+            if (py::len(obj) == MatT::size) {
+                for (int i = 0; i < MatT::size; ++i) {
                     PyObject *rowObj = PySequence_GetItem(obj, i);
                     if (!PySequence_Check(rowObj)) {
                         return false;
                     }
-                    if (py::len(rowObj) != openvdb::Mat4s::size) {
+                    if (py::len(rowObj) != MatT::size) {
                         return false;
                     }
-                    for (int j = 0; j < openvdb::Mat4s::size; ++j) {
-                        value(i, j) = py::cast<typename openvdb::Mat4s::value_type>(PySequence_GetItem(rowObj, j));
+                    for (int j = 0; j < MatT::size; ++j) {
+                        value(i, j) = py::cast<typename MatT::value_type>(PySequence_GetItem(rowObj, j));
                     }
                 }
             }
@@ -162,11 +162,11 @@ namespace pybind11 { namespace detail {
         }
 
         /// Return the given matrix as a Python list of lists.
-        static handle cast(openvdb::Mat4s src, return_value_policy, handle) {
+        static handle cast(MatT src, return_value_policy, handle) {
             py::list obj;
-            for (int i = 0; i < openvdb::Mat4s::size; ++i) {
+            for (int i = 0; i < MatT::size; ++i) {
                 py::list rowObj;
-                for (int j = 0; j < openvdb::Mat4s::size; ++j) {
+                for (int j = 0; j < MatT::size; ++j) {
                     rowObj.append(src(i, j));
                 }
                 obj.append(rowObj);
@@ -174,6 +174,8 @@ namespace pybind11 { namespace detail {
             return std::move(obj);
         }
     };
+    template <> struct type_caster<openvdb::Mat4s> : mat_type_caster<openvdb::Mat4s> {};
+    template <> struct type_caster<openvdb::Mat4d> : mat_type_caster<openvdb::Mat4d> {};
 
     /// Helper class to convert between a Python integer and a openvdb::PointIndex
     template <> struct type_caster<PointDataIndex32> {
@@ -319,6 +321,7 @@ namespace pybind11 { namespace detail {
                     ret[py::str(it->first)] = obj;
                 }
             }
+            return ret;
         }
     };
 

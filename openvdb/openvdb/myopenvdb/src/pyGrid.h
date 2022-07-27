@@ -587,7 +587,7 @@ getMetadataKeys(GridBase::ConstPtr grid)
 
 
 inline py::object
-getMetadata(GridBase::ConstPtr grid, std::string name)
+getMetadata(GridBase::ConstPtr grid, const std::string& name)
 {
     if (!grid) return py::none();
 
@@ -599,42 +599,29 @@ getMetadata(GridBase::ConstPtr grid, std::string name)
 }
 
 
-// inline void
-// setMetadata(GridBase::Ptr grid, py::object nameObj, py::object valueObj)
-// {
-//     if (!grid) return;
+inline void
+setMetadata(GridBase::Ptr grid, const std::string& name, Metadata::Ptr metadata)
+{
+    if (!grid) return;
 
-//     const std::string name = pyutil::castArg<std::string>(
-//         nameObj, "__setitem__", nullptr, /*argIdx=*/1, "str");
-
-//     // Insert the Python object into a Python dict, then use the dict-to-MetaMap
-//     // converter (see pyOpenVDBModule.cc) to convert the dict to a MetaMap
-//     // containing a Metadata object of the appropriate type.
-//     /// @todo Would be more efficient to convert the Python object
-//     /// directly to a Metadata object.
-//     py::dict dictObj;
-//     dictObj[name] = valueObj;
-//     MetaMap metamap = py::cast<MetaMap>(dictObj);
-
-//     if (Metadata::Ptr metadata = metamap[name]) {
-//         grid->removeMeta(name);
-//         grid->insertMeta(name, *metadata);
-//     }
-// }
+    if (metadata) {
+        grid->removeMeta(name);
+        grid->insertMeta(name, *metadata);
+    }
+}
 
 
-// inline void
-// removeMetadata(GridBase::Ptr grid, const std::string& name)
-// {
-//     if (grid) {
-//         Metadata::Ptr metadata = (*grid)[name];
-//         if (!metadata) {
-//             PyErr_SetString(PyExc_KeyError, name.c_str());
-//             py::error_already_set();
-//         }
-//         grid->removeMeta(name);
-//     }
-// }
+inline void
+removeMetadata(GridBase::Ptr grid, const std::string& name)
+{
+    if (grid) {
+        Metadata::Ptr metadata = (*grid)[name];
+        if (!metadata) {
+            throw py::key_error(name);
+        }
+        grid->removeMeta(name);
+    }
+}
 
 
 inline bool
@@ -2194,13 +2181,13 @@ exportGrid(py::module_ &m)
             .def("__getitem__", &pyGrid::getMetadata,
                 "__getitem__(name) -> value\n\n"
                 "Return the metadata value associated with the given name.")
-            // .def("__setitem__", &pyGrid::setMetadata,
-            //     "__setitem__(name, value)\n\n"
-            //     "Add metadata to this grid, replacing any existing item having\n"
-            //     "the same name as the new item.")
-            // .def("__delitem__", &pyGrid::removeMetadata,
-            //     "__delitem__(name)\n\n"
-            //     "Remove the metadata with the given name.")
+            .def("__setitem__", &pyGrid::setMetadata,
+                "__setitem__(name, value)\n\n"
+                "Add metadata to this grid, replacing any existing item having\n"
+                "the same name as the new item.")
+            .def("__delitem__", &pyGrid::removeMetadata,
+                "__delitem__(name)\n\n"
+                "Remove the metadata with the given name.")
             .def("__contains__", &pyGrid::hasMetadata,
                 "__contains__(name) -> bool\n\n"
                 "Return True if this grid contains metadata with the given name.")
@@ -2431,7 +2418,7 @@ exportGrid(py::module_ &m)
 
             ; // py::class_<Grid>
 
-        // // @todo: Not sure if this needs to be translated since pybin11 should
+        // // @todo: Not sure if this needs to be translated since pybind11 should
         // // already manage the smart pointer properly from the class_ call??
         // // // Register the GridPtr-to-Python object converter explicitly
         // // // if it is not already implicitly registered.

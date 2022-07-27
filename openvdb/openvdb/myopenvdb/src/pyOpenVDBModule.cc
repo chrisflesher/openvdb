@@ -24,17 +24,6 @@ void exportFloatGrid(py::module_ &m);
 // void exportPointGrid(py::module_ &m);
 
 
-void print(openvdb::Coord xyz) {
-    std::cout << xyz[0] << " " << xyz[1] << " " << xyz[2] << std::endl;
-}
-
-/* Easily iterate over a dictionary using a C++11 range-based for loop */
-void print_dict(py::dict dict) {
-    for (auto item : dict)
-        std::cout << "key: " << std::string(py::str(item.first)) << ", value=" << std::string(py::str(item.second)) << std::endl;
-}
-
-
 // namespace _openvdbmodule {
 
 using namespace openvdb;
@@ -630,12 +619,6 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
     // exportIntGrid(m);
     // exportVec3Grid(m);
     // exportPointGrid(m);
-
-    m.def("print",
-          &print,
-          py::arg("xyz"),
-          "print(xyz) -> None\n\n"
-          "Print yo int yo.");
 
     m.def("read",
         &readFromFile,

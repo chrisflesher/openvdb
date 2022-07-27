@@ -637,12 +637,12 @@ getMetadata(GridBase::ConstPtr grid, std::string name)
 // }
 
 
-// inline bool
-// hasMetadata(GridBase::ConstPtr grid, const std::string& name)
-// {
-//     if (grid) return ((*grid)[name].get() != nullptr);
-//     return false;
-// }
+inline bool
+hasMetadata(GridBase::ConstPtr grid, const std::string& name)
+{
+    if (grid) return ((*grid)[name].get() != nullptr);
+    return false;
+}
 
 
 ////////////////////////////////////////
@@ -2201,9 +2201,9 @@ exportGrid(py::module_ &m)
             // .def("__delitem__", &pyGrid::removeMetadata,
             //     "__delitem__(name)\n\n"
             //     "Remove the metadata with the given name.")
-            // .def("__contains__", &pyGrid::hasMetadata,
-            //     "__contains__(name) -> bool\n\n"
-            //     "Return True if this grid contains metadata with the given name.")
+            .def("__contains__", &pyGrid::hasMetadata,
+                "__contains__(name) -> bool\n\n"
+                "Return True if this grid contains metadata with the given name.")
             .def("__iter__", &pyGrid::getMetadataKeys,
                 "__iter__() -> iterator\n\n"
                 "Return an iterator over this grid's metadata keys.")

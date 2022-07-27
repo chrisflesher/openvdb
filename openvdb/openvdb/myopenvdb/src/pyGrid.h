@@ -575,44 +575,28 @@ getStatsMetadata(GridBase::ConstPtr grid)
 }
 
 
-// inline py::object
-// getMetadataKeys(GridBase::ConstPtr grid)
-// {
-//     if (grid) {
-// #if PY_MAJOR_VERSION >= 3
-//         // Return an iterator over the "keys" view of a dict.
-//         return py::import("builtins").attr("iter")(
-//             py::dict(static_cast<const MetaMap&>(*grid)).keys());
-// #else
-//         return py::dict(static_cast<const MetaMap&>(*grid)).iterkeys();
-// #endif
-//     }
-//     return py::none();
-// }
+inline py::object
+getMetadataKeys(GridBase::ConstPtr grid)
+{
+    if (grid) {
+        // Return an iterator over the "keys" view of a dict.
+        return py::make_iterator(grid->beginMeta(), grid->endMeta());
+    }
+    return py::none();
+}
 
 
-// inline py::object
-// getMetadata(GridBase::ConstPtr grid, py::object nameObj)
-// {
-//     if (!grid) return py::none();
+inline py::object
+getMetadata(GridBase::ConstPtr grid, std::string name)
+{
+    if (!grid) return py::none();
 
-//     const std::string name = pyutil::castArg<std::string>(
-//         nameObj, "__getitem__", nullptr, /*argIdx=*/1, "str");
-
-//     Metadata::ConstPtr metadata = (*grid)[name];
-//     if (!metadata) {
-//         PyErr_SetString(PyExc_KeyError, name.c_str());
-//         py::error_already_set();
-//     }
-
-//     // Use the MetaMap-to-dict converter (see pyOpenVDBModule.cc) to convert
-//     // the Metadata value to a Python object of the appropriate type.
-//     /// @todo Would be more efficient to convert the Metadata object
-//     /// directly to a Python object.
-//     MetaMap metamap;
-//     metamap.insertMeta(name, *metadata);
-//     return py::dict(metamap)[name];
-// }
+    Metadata::ConstPtr metadata = (*grid)[name];
+    if (!metadata) {
+        throw py::key_error(name);
+    }
+    return py::cast(metadata);;
+}
 
 
 // inline void
@@ -2207,9 +2191,9 @@ exportGrid(py::module_ &m)
                 "Return a (possibly empty) dict containing just the metadata\n"
                 "that was added to this grid with addStatsMetadata().")
 
-            // .def("__getitem__", &pyGrid::getMetadata,
-            //     "__getitem__(name) -> value\n\n"
-            //     "Return the metadata value associated with the given name.")
+            .def("__getitem__", &pyGrid::getMetadata,
+                "__getitem__(name) -> value\n\n"
+                "Return the metadata value associated with the given name.")
             // .def("__setitem__", &pyGrid::setMetadata,
             //     "__setitem__(name, value)\n\n"
             //     "Add metadata to this grid, replacing any existing item having\n"
@@ -2220,9 +2204,9 @@ exportGrid(py::module_ &m)
             // .def("__contains__", &pyGrid::hasMetadata,
             //     "__contains__(name) -> bool\n\n"
             //     "Return True if this grid contains metadata with the given name.")
-            // .def("__iter__", &pyGrid::getMetadataKeys,
-            //     "__iter__() -> iterator\n\n"
-            //     "Return an iterator over this grid's metadata keys.")
+            .def("__iter__", &pyGrid::getMetadataKeys,
+                "__iter__() -> iterator\n\n"
+                "Return an iterator over this grid's metadata keys.")
             // .def("iterkeys", &pyGrid::getMetadataKeys,
             //     "iterkeys() -> iterator\n\n"
             //     "Return an iterator over this grid's metadata keys.")

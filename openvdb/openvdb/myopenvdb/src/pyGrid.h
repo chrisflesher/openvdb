@@ -525,16 +525,6 @@ getIndexRange(const GridType& grid)
 }
 
 
-template<typename GridType>
-inline void
-expandIndexRange(GridType& grid, py::object coordObj)
-{
-   Coord xyz = castValueArg<GridType, Coord>(
-       coordObj, "expand", 0, "tuple(int, int, int)");
-   grid.tree().expand(xyz);
-}
-
-
 ////////////////////////////////////////
 
 
@@ -576,14 +566,13 @@ updateMetadata(GridBase::Ptr grid, const MetaMap& metadata)
 }
 
 
-// inline py::dict
-// getStatsMetadata(GridBase::ConstPtr grid)
-// {
-//     MetaMap::ConstPtr metadata;
-//     if (grid) metadata = grid->getStatsMetadata();
-//     if (metadata) return py::dict(*metadata);
-//     return py::dict();
-// }
+inline py::dict
+getStatsMetadata(GridBase::ConstPtr grid)
+{
+    MetaMap::ConstPtr metadata;
+    if (grid) metadata = grid->getStatsMetadata();
+    return py::cast(*metadata);
+}
 
 
 // inline py::object
@@ -2207,16 +2196,16 @@ exportGrid(py::module_ &m)
                 "Add metadata to this grid, replacing any existing items\n"
                 "having the same names as the new items.")
 
-            // .def("addStatsMetadata", &GridType::addStatsMetadata,
-            //     "addStatsMetadata()\n\n"
-            //     "Add metadata to this grid comprising the current values\n"
-            //     "of statistics like the active voxel count and bounding box.\n"
-            //     "(This metadata is not automatically kept up-to-date with\n"
-            //     "changes to this grid.)")
-            // .def("getStatsMetadata", &pyGrid::getStatsMetadata,
-            //     "getStatsMetadata() -> dict\n\n"
-            //     "Return a (possibly empty) dict containing just the metadata\n"
-            //     "that was added to this grid with addStatsMetadata().")
+            .def("addStatsMetadata", &GridType::addStatsMetadata,
+                "addStatsMetadata()\n\n"
+                "Add metadata to this grid comprising the current values\n"
+                "of statistics like the active voxel count and bounding box.\n"
+                "(This metadata is not automatically kept up-to-date with\n"
+                "changes to this grid.)")
+            .def("getStatsMetadata", &pyGrid::getStatsMetadata,
+                "getStatsMetadata() -> dict\n\n"
+                "Return a (possibly empty) dict containing just the metadata\n"
+                "that was added to this grid with addStatsMetadata().")
 
             // .def("__getitem__", &pyGrid::getMetadata,
             //     "__getitem__(name) -> value\n\n"
@@ -2296,10 +2285,6 @@ exportGrid(py::module_ &m)
                 "getIndexRange() -> min, max\n\n"
                 "Return the minimum and maximum coordinates that are represented\n"
                 "in this grid.  These might include background voxels.")
-            // .def("expand", &pyGrid::expandIndexRange<GridType>,
-            //    py::arg("xyz"),
-            //    "expand(xyz)\n\n"
-            //    "Expand this grid's index range to include the given coordinates.")
 
             .def("info", &pyGrid::gridInfo,
                 py::arg("verbosity")=1,

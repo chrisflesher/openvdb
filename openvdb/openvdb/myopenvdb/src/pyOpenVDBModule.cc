@@ -8,7 +8,7 @@
 // #include <utility> // for std::make_pair()
 #include <pybind11/pybind11.h>
 #include "openvdb/openvdb.h"
-// #include "pyopenvdb.h"
+#include "pyopenvdb.h"
 #include "pyGrid.h"
 #include "pyutil.h"
 
@@ -39,7 +39,7 @@ void print_dict(py::dict dict) {
 
 using namespace openvdb;
 
-// ////////////////////////////////////////
+////////////////////////////////////////
 
 namespace pybind11 { namespace detail {
 
@@ -347,49 +347,7 @@ namespace pybind11 { namespace detail {
 }} // namespace pybind11::detail
 
 
-// ////////////////////////////////////////
-
-
-// template<typename T> void translateException(const T&) {}
-
-// /// @brief Define a function that translates an OpenVDB exception into
-// /// the equivalent Python exception.
-// /// @details openvdb::Exception::what() typically returns a string of the form
-// /// "<exception>: <description>".  To avoid duplication of the exception name in Python
-// /// stack traces, the function strips off the "<exception>: " prefix.  To do that,
-// /// it needs the class name in the form of a string, hence the preprocessor macro.
-// #define PYOPENVDB_CATCH(_openvdbname, _pyname)                      \
-//     template<>                                                      \
-//     void translateException<_openvdbname>(const _openvdbname& e)    \
-//     {                                                               \
-//         const char* name = #_openvdbname;                           \
-//         if (const char* c = std::strrchr(name, ':')) name = c + 1;  \
-//         const int namelen = int(std::strlen(name));                 \
-//         const char* msg = e.what();                                 \
-//         if (0 == std::strncmp(msg, name, namelen)) msg += namelen;  \
-//         if (0 == std::strncmp(msg, ": ", 2)) msg += 2;              \
-//         PyErr_SetString(_pyname, msg);                              \
-//     }
-
-
-// /// Define an overloaded function that translate all OpenVDB exceptions into
-// /// their Python equivalents.
-// /// @todo LookupError is redundant and should someday be removed.
-// PYOPENVDB_CATCH(openvdb::ArithmeticError,       PyExc_ArithmeticError)
-// PYOPENVDB_CATCH(openvdb::IndexError,            PyExc_IndexError)
-// PYOPENVDB_CATCH(openvdb::IoError,               PyExc_IOError)
-// PYOPENVDB_CATCH(openvdb::KeyError,              PyExc_KeyError)
-// PYOPENVDB_CATCH(openvdb::LookupError,           PyExc_LookupError)
-// PYOPENVDB_CATCH(openvdb::NotImplementedError,   PyExc_NotImplementedError)
-// PYOPENVDB_CATCH(openvdb::ReferenceError,        PyExc_ReferenceError)
-// PYOPENVDB_CATCH(openvdb::RuntimeError,          PyExc_RuntimeError)
-// PYOPENVDB_CATCH(openvdb::TypeError,             PyExc_TypeError)
-// PYOPENVDB_CATCH(openvdb::ValueError,            PyExc_ValueError)
-
-// #undef PYOPENVDB_CATCH
-
-
-// ////////////////////////////////////////
+////////////////////////////////////////
 
 
 py::object
@@ -474,38 +432,41 @@ readAllGridMetadataFromFile(const std::string& filename)
 }
 
 
-// void
-// writeToFile(const std::string& filename, py::object gridOrSeqObj, py::object dictObj)
-// {
-//     GridPtrVec gridVec;
-//     try {
-//         GridBase::Ptr base = pyopenvdb::getGridFromPyObject(gridOrSeqObj);
-//         gridVec.push_back(base);
-//     } catch (openvdb::TypeError&) {
-//         for (py::stl_input_iterator<py::object> it(gridOrSeqObj), end; it != end; ++it) {
-//             if (GridBase::Ptr base = pyGrid::getGridBaseFromGrid(*it)) {
-//                 gridVec.push_back(base);
-//             }
-//         }
-//     }
+void
+writeToFile(const std::string& filename, py::object gridOrSeqObj, py::object dictObj)
+{
+    GridPtrVec gridVec;
+    while (true) {
+        try {
+            GridBase::Ptr base = pyopenvdb::getGridFromPyObject(gridOrSeqObj);
+            gridVec.push_back(base);
+            break;
+        } catch (openvdb::TypeError&) {}
+        try {
+            py::list seqObj = py::cast<py::list>(gridOrSeqObj);
+            for (auto item : seqObj) {
+                py::object gridObj = py::reinterpret_borrow<py::object>(item);
+                if (GridBase::Ptr base = pyGrid::getGridBaseFromGrid(gridObj)) {
+                    gridVec.push_back(base);
+                }
+            }
+            break;
+        } catch (py::cast_error) {}
+        throw py::type_error();
+    }
 
-//     io::File vdbFile(filename);
-//     if (dictObj.is_none()) {
-//         vdbFile.write(gridVec);
-//     } else {
-//         MetaMap metadata = py::cast<MetaMap>(dictObj);
-//         vdbFile.write(gridVec, metadata);
-//     }
-//     vdbFile.close();
-// }
+    io::File vdbFile(filename);
+    if (dictObj.is_none()) {
+        vdbFile.write(gridVec);
+    } else {
+        MetaMap metadata = py::cast<MetaMap>(dictObj);
+        vdbFile.write(gridVec, metadata);
+    }
+    vdbFile.close();
+}
 
 
-// ////////////////////////////////////////
-
-
-// std::string getLoggingLevel();
-// void setLoggingLevel(py::object);
-// void setProgramName(py::object, bool);
+////////////////////////////////////////
 
 
 std::string
@@ -651,44 +612,16 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
     // Initialize OpenVDB.
     initialize();
 
-    // _openvdbmodule::VecConverter<Vec2i>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec2I>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec2s>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec2d>::registerConverter();
-
-    // _openvdbmodule::VecConverter<Vec3i>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec3I>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec3s>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec3d>::registerConverter();
-
-    // _openvdbmodule::VecConverter<Vec4i>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec4I>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec4s>::registerConverter();
-    // _openvdbmodule::VecConverter<Vec4d>::registerConverter();
-
-    // _openvdbmodule::MatConverter<Mat4s>::registerConverter();
-    // _openvdbmodule::MatConverter<Mat4d>::registerConverter();
-
-    // _openvdbmodule::PointIndexConverter<PointDataIndex32>::registerConverter();
-
-    // _openvdbmodule::MetaMapConverter::registerConverter();
-
-// #define PYOPENVDB_TRANSLATE_EXCEPTION(_classname) \
-//     py::register_exception_translator<_classname>(&_openvdbmodule::translateException<_classname>)
-
-//     PYOPENVDB_TRANSLATE_EXCEPTION(ArithmeticError);
-//     PYOPENVDB_TRANSLATE_EXCEPTION(IndexError);
-//     PYOPENVDB_TRANSLATE_EXCEPTION(IoError);
-//     PYOPENVDB_TRANSLATE_EXCEPTION(KeyError);
-//     PYOPENVDB_TRANSLATE_EXCEPTION(LookupError);
-//     PYOPENVDB_TRANSLATE_EXCEPTION(NotImplementedError);
-//     PYOPENVDB_TRANSLATE_EXCEPTION(ReferenceError);
-//     PYOPENVDB_TRANSLATE_EXCEPTION(RuntimeError);
-//     PYOPENVDB_TRANSLATE_EXCEPTION(TypeError);
-//     PYOPENVDB_TRANSLATE_EXCEPTION(ValueError);
-
-// #undef PYOPENVDB_TRANSLATE_EXCEPTION
-
+    py::register_exception<openvdb::ArithmeticError>(m, "ArithmeticError", PyExc_ArithmeticError);
+    py::register_exception<openvdb::IndexError>(m, "IndexError", PyExc_IndexError);
+    py::register_exception<openvdb::IoError>(m, "IoError", PyExc_IOError);
+    py::register_exception<openvdb::KeyError>(m, "KeyError", PyExc_KeyError);
+    py::register_exception<openvdb::LookupError>(m, "LookupError", PyExc_LookupError);
+    py::register_exception<openvdb::NotImplementedError>(m, "NotImplementedError", PyExc_NotImplementedError);
+    py::register_exception<openvdb::ReferenceError>(m, "ReferenceError", PyExc_ReferenceError);
+    py::register_exception<openvdb::RuntimeError>(m, "RuntimeError", PyExc_RuntimeError);
+    py::register_exception<openvdb::TypeError>(m, "TypeError", PyExc_TypeError);
+    py::register_exception<openvdb::ValueError>(m, "ValueError", PyExc_ValueError);
 
     // Export the python bindings.
     exportTransform(m);
@@ -737,12 +670,12 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
         "Read a .vdb file and return a list of grids populated with\n"
         "their metadata and transforms, but not their trees.");
 
-    // m.def("write",
-    //     &writeToFile,
-    //     py::arg("filename"), py::arg("grids"), py::arg("metadata") = py::none,
-    //     "write(filename, grids, metadata=None)\n\n"
-    //     "Write a grid or a sequence of grids and, optionally, a dict\n"
-    //     "of (name, value) metadata pairs to a .vdb file.");
+    m.def("write",
+        &writeToFile,
+        py::arg("filename"), py::arg("grids"), py::arg("metadata") = py::none(),
+        "write(filename, grids, metadata=None)\n\n"
+        "Write a grid or a sequence of grids and, optionally, a dict\n"
+        "of (name, value) metadata pairs to a .vdb file.");
 
    m.def("getLoggingLevel", &getLoggingLevel,
         "getLoggingLevel() -> str\n\n"

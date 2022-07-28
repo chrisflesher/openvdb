@@ -600,14 +600,12 @@ getMetadata(GridBase::ConstPtr grid, const std::string& name)
 
 
 inline void
-setMetadata(GridBase::Ptr grid, const std::string& name, Metadata::Ptr metadata)
+setMetadata(GridBase::Ptr grid, const std::string& name, const Metadata& metadata)
 {
     if (!grid) return;
 
-    if (metadata) {
-        grid->removeMeta(name);
-        grid->insertMeta(name, *metadata);
-    }
+    grid->removeMeta(name);
+    grid->insertMeta(name, metadata);
 }
 
 
@@ -2194,9 +2192,9 @@ exportGrid(py::module_ &m)
             .def("__iter__", &pyGrid::getMetadataKeys,
                 "__iter__() -> iterator\n\n"
                 "Return an iterator over this grid's metadata keys.")
-            // .def("iterkeys", &pyGrid::getMetadataKeys,
-            //     "iterkeys() -> iterator\n\n"
-            //     "Return an iterator over this grid's metadata keys.")
+            .def("iterkeys", &pyGrid::getMetadataKeys,
+                "iterkeys() -> iterator\n\n"
+                "Return an iterator over this grid's metadata keys.")
 
             .def_property("saveFloatAsHalf",
                 &GridType::saveFloatAsHalf, &GridType::setSaveFloatAsHalf,

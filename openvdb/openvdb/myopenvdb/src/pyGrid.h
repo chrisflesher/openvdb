@@ -671,6 +671,42 @@ signedFloodFill(GridType& grid)
 ////////////////////////////////////////
 
 
+// template<typename GridType>
+// inline void
+// copyToArray(GridType& grid, py::buffer buffer, const Coord& coord)
+// {
+//     using ValueT = typename GridType::ValueType;
+//     using DenseT = typename tools::Dense<ValueT>;
+
+//     py::buffer_info info = buffer.request();
+//     if (info.ndim != 3) {
+//         std::ostringstream os;
+//         os << "expected 3-dimensional array, found " << info.ndim << "-dimensional array";
+//         throw py::value_error(os.str());
+//     }
+//     Coord maxCoord(coord[0] + info.shape[0], coord[1] + info.shape[1], coord[2] + info.shape[2]);
+//     CoordBBox bbox(coord, maxCoord);
+//     // tools::copyToDense(grid, py::cast<DenseT>(buffer));
+// }
+
+
+// template<typename GridType>
+// inline void
+// copyFromArray(GridType& grid, py::buffer buffer, const Coord& coord, const typename GridType::ValueType& tolerance)
+// {
+//     using ValueT = typename GridType::ValueType;
+//     using DenseT = typename tools::Dense<ValueT>;
+
+//     py::buffer_info info = buffer.request();
+//     if (info.ndim != 3) {
+//         std::ostringstream os;
+//         os << "expected 3-dimensional array, found " << info.ndim << "-dimensional array";
+//         throw py::value_error(os.str());
+//     }
+//     Coord maxCoord(coord[0] + info.shape[0], coord[1] + info.shape[1], coord[2] + info.shape[2]);
+//     CoordBBox bbox(coord, maxCoord);
+//     // tools::copyFromDense(grid, py::cast<DenseT>(buffer), tolerance);
+// }
 
 
 ////////////////////////////////////////
@@ -1261,6 +1297,7 @@ exportGrid(py::module_ &m)
     using ValueT = typename GridType::ValueType;
     using GridPtr = typename GridType::Ptr;
     using Traits = pyutil::GridTraits<GridType>;
+    using DenseT = typename tools::Dense<ValueT>;
 
     using ValueOnCIterT = typename GridType::ValueOnCIter;
     using ValueOffCIterT = typename GridType::ValueOffCIter;
@@ -1454,21 +1491,21 @@ exportGrid(py::module_ &m)
                 "Propagate the sign from a narrow-band level set into inactive\n"
                 "voxels and tiles.")
 
-        //     .def("copyFromArray", &pyGrid::copyFromArray<GridType>,
-        //         py::arg("array"), py::arg("ijk")=Coord(0),
-        //              py::arg("tolerance")=pyGrid::getZeroValue<GridType>(),
-        //         ("copyFromArray(array, ijk=(0, 0, 0), tolerance=0)\n\n"
-        //         "Populate this grid, starting at voxel (i, j, k), with values\nfrom a "
-        //         + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
-        //         + "-dimensional array.  Mark voxels as inactive\n"
-        //         "if and only if their values are equal to this grid's\n"
-        //         "background value within the given tolerance.").c_str())
-        //     .def("copyToArray", &pyGrid::copyToArray<GridType>,
-        //         py::arg("array"), py::arg("ijk")=Coord(0),
-        //         ("copyToArray(array, ijk=(0, 0, 0))\n\nPopulate a "
-        //         + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
-        //         + "-dimensional array with values\n"
-        //         "from this grid, starting at voxel (i, j, k).").c_str())
+            // .def("copyFromArray", &pyGrid::copyFromArray<GridType>,
+            //     py::arg("array"), py::arg("ijk")=Coord(0),
+            //          py::arg("tolerance")=pyGrid::getZeroValue<GridType>(),
+            //     ("copyFromArray(array, ijk=(0, 0, 0), tolerance=0)\n\n"
+            //     "Populate this grid, starting at voxel (i, j, k), with values\nfrom a "
+            //     + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
+            //     + "-dimensional array.  Mark voxels as inactive\n"
+            //     "if and only if their values are equal to this grid's\n"
+            //     "background value within the given tolerance.").c_str())
+            // .def("copyToArray", &pyGrid::copyToArray<GridType>,
+            //     py::arg("array"), py::arg("ijk")=Coord(0),
+            //     ("copyToArray(array, ijk=(0, 0, 0))\n\nPopulate a "
+            //     + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
+            //     + "-dimensional array with values\n"
+            //     "from this grid, starting at voxel (i, j, k).").c_str())
 
             // .def("convertToQuads",
             //     &pyGrid::volumeToQuadMesh<GridType>,
@@ -1596,26 +1633,6 @@ exportGrid(py::module_ &m)
 
             ; // py::class_<Grid>
 
-        // // @todo: Not sure if this needs to be translated since pybind11 should
-        // // already manage the smart pointer properly from the class_ call??
-        // // // Register the GridPtr-to-Python object converter explicitly
-        // // // if it is not already implicitly registered.
-        // // try {
-        // //     py::object testObj{GridPtr()};
-        // // } catch (py::error_already_set&) {
-        // //     PyErr_Clear();
-        // //     py::register_ptr_to_python<GridPtr>();
-        // // }
-
-        // py::implicitly_convertible<GridPtr, GridBase::Ptr>();
-        // py::implicitly_convertible<GridPtr, GridBase::ConstPtr>();
-        /// @todo Is there a way to implicitly convert GridType references to GridBase
-        /// references without wrapping the GridBase class?  The following doesn't compile,
-        /// because GridBase has pure virtual functions:
-        /// @code
-        /// py::implicitly_convertible<GridType&, GridBase&>();
-        /// @endcode
-
         // Wrap const and non-const value accessors and expose them
         // as nested classes of the Grid class.
         pyAccessor::AccessorWrap<const GridType>::wrap(m);
@@ -1634,6 +1651,23 @@ exportGrid(py::module_ &m)
     // Add the Python type object for this grid type to the module-level list.
     py::list gridTypes = m.attr("GridTypes");
     gridTypes.append(pyGridTypeName);
+
+    // Python buffer protocol for dense arrays
+    py::class_<DenseT>(m, (std::string("Dense") + pyGridTypeName).c_str(), py::buffer_protocol())
+    .def_buffer([](DenseT &d) -> py::buffer_info {
+        return py::buffer_info(
+            d.data(),                                // Pointer to buffer
+            sizeof(ValueT),                          // Size of one scalar
+            py::format_descriptor<ValueT>::format(), // Python struct-style format descriptor
+            3,                                       // Number of dimensions
+            { d.bbox().dim()[0],                     // Buffer dimensions
+              d.bbox().dim()[1],
+              d.bbox().dim()[2] },
+            { d.xStride(),                           // Strides (in bytes) for each index
+              d.yStride(),
+              d.zStride() }
+        );
+    });
 }
 
 } // namespace pyGrid

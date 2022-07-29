@@ -9,6 +9,7 @@
 #define OPENVDB_PYGRID_HAS_BEEN_INCLUDED
 
 #include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 //#include <pybind11/embed.h>
 //#include <arrayobject.h> // for PyArray_Descr (see pyGrid::arrayTypeId())
 #include "openvdb/tools/MeshToVolume.h"
@@ -671,42 +672,44 @@ signedFloodFill(GridType& grid)
 ////////////////////////////////////////
 
 
-// template<typename GridType>
-// inline void
-// copyToArray(GridType& grid, py::buffer buffer, const Coord& coord)
-// {
-//     using ValueT = typename GridType::ValueType;
-//     using DenseT = typename tools::Dense<ValueT>;
+template<typename GridType>
+inline void
+copyToArray(GridType& grid, py::buffer buffer, const Coord& coord)
+{
+    using ValueT = typename GridType::ValueType;
+    using DenseT = typename tools::Dense<ValueT>;
 
-//     py::buffer_info info = buffer.request();
-//     if (info.ndim != 3) {
-//         std::ostringstream os;
-//         os << "expected 3-dimensional array, found " << info.ndim << "-dimensional array";
-//         throw py::value_error(os.str());
-//     }
-//     Coord maxCoord(coord[0] + info.shape[0], coord[1] + info.shape[1], coord[2] + info.shape[2]);
-//     CoordBBox bbox(coord, maxCoord);
-//     // tools::copyToDense(grid, py::cast<DenseT>(buffer));
-// }
+    py::buffer_info info = buffer.request();
+    if (info.ndim != 3) {
+        std::ostringstream os;
+        os << "expected 3-dimensional array, found " << info.ndim << "-dimensional array";
+        throw py::value_error(os.str());
+    }
+    Coord maxCoord(coord[0] + info.shape[0], coord[1] + info.shape[1], coord[2] + info.shape[2]);
+    CoordBBox bbox(coord, maxCoord);
+    DenseT valArray(bbox, static_cast<ValueT*>(info.ptr));
+    tools::copyToDense(grid, valArray);
+}
 
 
-// template<typename GridType>
-// inline void
-// copyFromArray(GridType& grid, py::buffer buffer, const Coord& coord, const typename GridType::ValueType& tolerance)
-// {
-//     using ValueT = typename GridType::ValueType;
-//     using DenseT = typename tools::Dense<ValueT>;
+template<typename GridType>
+inline void
+copyFromArray(GridType& grid, py::buffer buffer, const Coord& coord, const typename GridType::ValueType& tolerance)
+{
+    using ValueT = typename GridType::ValueType;
+    using DenseT = typename tools::Dense<ValueT>;
 
-//     py::buffer_info info = buffer.request();
-//     if (info.ndim != 3) {
-//         std::ostringstream os;
-//         os << "expected 3-dimensional array, found " << info.ndim << "-dimensional array";
-//         throw py::value_error(os.str());
-//     }
-//     Coord maxCoord(coord[0] + info.shape[0], coord[1] + info.shape[1], coord[2] + info.shape[2]);
-//     CoordBBox bbox(coord, maxCoord);
-//     // tools::copyFromDense(grid, py::cast<DenseT>(buffer), tolerance);
-// }
+    py::buffer_info info = buffer.request();
+    if (info.ndim != 3) {
+        std::ostringstream os;
+        os << "expected 3-dimensional array, found " << info.ndim << "-dimensional array";
+        throw py::value_error(os.str());
+    }
+    Coord maxCoord(coord[0] + info.shape[0], coord[1] + info.shape[1], coord[2] + info.shape[2]);
+    CoordBBox bbox(coord, maxCoord);
+    DenseT valArray(bbox, static_cast<ValueT*>(info.ptr));
+    // tools::copyFromDense(grid, valArray, tolerance);
+}
 
 
 ////////////////////////////////////////
@@ -1491,21 +1494,21 @@ exportGrid(py::module_ &m)
                 "Propagate the sign from a narrow-band level set into inactive\n"
                 "voxels and tiles.")
 
-            // .def("copyFromArray", &pyGrid::copyFromArray<GridType>,
-            //     py::arg("array"), py::arg("ijk")=Coord(0),
-            //          py::arg("tolerance")=pyGrid::getZeroValue<GridType>(),
-            //     ("copyFromArray(array, ijk=(0, 0, 0), tolerance=0)\n\n"
-            //     "Populate this grid, starting at voxel (i, j, k), with values\nfrom a "
-            //     + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
-            //     + "-dimensional array.  Mark voxels as inactive\n"
-            //     "if and only if their values are equal to this grid's\n"
-            //     "background value within the given tolerance.").c_str())
-            // .def("copyToArray", &pyGrid::copyToArray<GridType>,
-            //     py::arg("array"), py::arg("ijk")=Coord(0),
-            //     ("copyToArray(array, ijk=(0, 0, 0))\n\nPopulate a "
-            //     + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
-            //     + "-dimensional array with values\n"
-            //     "from this grid, starting at voxel (i, j, k).").c_str())
+            .def("copyFromArray", &pyGrid::copyFromArray<GridType>,
+                py::arg("array"), py::arg("ijk")=py::make_tuple(0, 0, 0),
+                py::arg("tolerance")=pyGrid::getZeroValue<GridType>(),
+                ("copyFromArray(array, ijk=(0, 0, 0), tolerance=0)\n\n"
+                "Populate this grid, starting at voxel (i, j, k), with values\nfrom a "
+                + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
+                + "-dimensional array.  Mark voxels as inactive\n"
+                "if and only if their values are equal to this grid's\n"
+                "background value within the given tolerance.").c_str())
+            .def("copyToArray", &pyGrid::copyToArray<GridType>,
+                py::arg("array"), py::arg("ijk")=py::make_tuple(0, 0, 0),
+                ("copyToArray(array, ijk=(0, 0, 0))\n\nPopulate a "
+                + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
+                + "-dimensional array with values\n"
+                "from this grid, starting at voxel (i, j, k).").c_str())
 
             // .def("convertToQuads",
             //     &pyGrid::volumeToQuadMesh<GridType>,

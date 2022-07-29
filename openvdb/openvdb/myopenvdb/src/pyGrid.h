@@ -693,6 +693,42 @@ copyToArray(GridType& grid, py::buffer buffer, const Coord& coord)
 
 
 template<typename GridType>
+py::array_t<typename GridType::ValueType>
+toArray(GridType& grid, const Coord& coord)
+{
+    using ValueT = typename GridType::ValueType;
+    using DenseT = typename tools::Dense<ValueT>;
+
+    const std::size_t itemsize = sizeof(ValueT);
+    const std::string format = py::format_descriptor<ValueT>::value;
+    const std::size_t ndim = 3;
+    const std::vector<std::size_t> shape = {
+        8,  // 8
+        8,  // 8
+        8   // 8
+    };
+    const std::vector<std::size_t> strides = {
+        8 * 8 * itemsize,
+        8 * itemsize,
+        itemsize,
+    };
+
+    Coord maxCoord(coord[0] + shape[0] - 1, coord[1] + shape[1] - 1, coord[2] + shape[2] - 1);
+    CoordBBox bbox(coord, maxCoord);
+    DenseT valArray(bbox);
+    tools::copyToDense(grid, valArray);
+    return py::array_t<ValueT>(py::buffer_info(
+        valArray.data(),  // Pointer to the underlying storage
+        itemsize,         // Size of individual items in bytes
+        format,           // set to format_descriptor<T>::format()
+        ndim,             // Number of dimensions
+        shape,            // Shape of the tensor (1 entry per dimension)
+        strides           // Number of bytes between adjacent entries
+    ));
+}
+
+
+template<typename GridType>
 inline void
 copyFromArray(GridType& grid, py::buffer buffer, const Coord& coord, const typename GridType::ValueType& tolerance)
 {
@@ -1506,6 +1542,12 @@ exportGrid(py::module_ &m)
             .def("copyToArray", &pyGrid::copyToArray<GridType>,
                 py::arg("array"), py::arg("ijk")=py::make_tuple(0, 0, 0),
                 ("copyToArray(array, ijk=(0, 0, 0))\n\nPopulate a "
+                + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
+                + "-dimensional array with values\n"
+                "from this grid, starting at voxel (i, j, k).").c_str())
+            .def("toArray", &pyGrid::toArray<GridType>,
+                py::arg("ijk")=py::make_tuple(0, 0, 0),
+                ("toArray(ijk=(0, 0, 0))\n\nPopulate a "
                 + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
                 + "-dimensional array with values\n"
                 "from this grid, starting at voxel (i, j, k).").c_str())

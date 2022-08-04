@@ -26,7 +26,7 @@ void exportFloatGrid(py::module_ &m);
 
 // namespace _openvdbmodule {
 
-using namespace openvdb;
+using namespace openvdb::OPENVDB_VERSION_NAME;
 
 ////////////////////////////////////////
 

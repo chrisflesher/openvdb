@@ -671,20 +671,22 @@ signedFloodFill(GridType& grid)
 
 ////////////////////////////////////////
 
-
 template<typename GridType>
 inline void
-copyToArray(GridType& grid, py::buffer buffer, const Coord& coord)
+copyToArray(GridType& grid, py::array_t<typename GridType::ValueType>& array)
 {
     using ValueT = typename GridType::ValueType;
     using DenseT = typename tools::Dense<ValueT>;
 
-    py::buffer_info info = buffer.request();
+
+    py::buffer_info info = array.request();
     if (info.ndim != 3) {
         std::ostringstream os;
         os << "expected 3-dimensional array, found " << info.ndim << "-dimensional array";
         throw py::value_error(os.str());
     }
+
+    Coord coord(0);
     Coord maxCoord(coord[0] + info.shape[0], coord[1] + info.shape[1], coord[2] + info.shape[2]);
     CoordBBox bbox(coord, maxCoord);
     DenseT valArray(bbox, static_cast<ValueT*>(info.ptr));
@@ -692,45 +694,10 @@ copyToArray(GridType& grid, py::buffer buffer, const Coord& coord)
 }
 
 
-template<typename GridType>
-py::array_t<typename GridType::ValueType>
-toArray(GridType& grid, const Coord& coord)
-{
-    using ValueT = typename GridType::ValueType;
-    using DenseT = typename tools::Dense<ValueT>;
-
-    const std::size_t itemsize = sizeof(ValueT);
-    const std::string format = py::format_descriptor<ValueT>::value;
-    const std::size_t ndim = 3;
-    const std::vector<std::size_t> shape = {
-        8,  // 8
-        8,  // 8
-        8   // 8
-    };
-    const std::vector<std::size_t> strides = {
-        8 * 8 * itemsize,
-        8 * itemsize,
-        itemsize,
-    };
-
-    Coord maxCoord(coord[0] + shape[0] - 1, coord[1] + shape[1] - 1, coord[2] + shape[2] - 1);
-    CoordBBox bbox(coord, maxCoord);
-    DenseT valArray(bbox);
-    tools::copyToDense(grid, valArray);
-    return py::array_t<ValueT>(py::buffer_info(
-        valArray.data(),  // Pointer to the underlying storage
-        itemsize,         // Size of individual items in bytes
-        format,           // set to format_descriptor<T>::format()
-        ndim,             // Number of dimensions
-        shape,            // Shape of the tensor (1 entry per dimension)
-        strides           // Number of bytes between adjacent entries
-    ));
-}
-
-
+// const Coord& coord,
 template<typename GridType>
 inline void
-copyFromArray(GridType& grid, py::buffer buffer, const Coord& coord, const typename GridType::ValueType& tolerance)
+copyFromArray(GridType& grid, py::buffer buffer, const typename GridType::ValueType& tolerance)
 {
     using ValueT = typename GridType::ValueType;
     using DenseT = typename tools::Dense<ValueT>;
@@ -741,6 +708,7 @@ copyFromArray(GridType& grid, py::buffer buffer, const Coord& coord, const typen
         os << "expected 3-dimensional array, found " << info.ndim << "-dimensional array";
         throw py::value_error(os.str());
     }
+    Coord coord(0);
     Coord maxCoord(coord[0] + info.shape[0], coord[1] + info.shape[1], coord[2] + info.shape[2]);
     CoordBBox bbox(coord, maxCoord);
     DenseT valArray(bbox, static_cast<ValueT*>(info.ptr));
@@ -1531,7 +1499,7 @@ exportGrid(py::module_ &m)
                 "voxels and tiles.")
 
             .def("copyFromArray", &pyGrid::copyFromArray<GridType>,
-                py::arg("array"), py::arg("ijk")=py::make_tuple(0, 0, 0),
+                py::arg("array"),
                 py::arg("tolerance")=pyGrid::getZeroValue<GridType>(),
                 ("copyFromArray(array, ijk=(0, 0, 0), tolerance=0)\n\n"
                 "Populate this grid, starting at voxel (i, j, k), with values\nfrom a "
@@ -1540,14 +1508,8 @@ exportGrid(py::module_ &m)
                 "if and only if their values are equal to this grid's\n"
                 "background value within the given tolerance.").c_str())
             .def("copyToArray", &pyGrid::copyToArray<GridType>,
-                py::arg("array"), py::arg("ijk")=py::make_tuple(0, 0, 0),
+                py::arg("array"),  //, py::arg("ijk")=py::make_tuple(0, 0, 0),
                 ("copyToArray(array, ijk=(0, 0, 0))\n\nPopulate a "
-                + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
-                + "-dimensional array with values\n"
-                "from this grid, starting at voxel (i, j, k).").c_str())
-            .def("toArray", &pyGrid::toArray<GridType>,
-                py::arg("ijk")=py::make_tuple(0, 0, 0),
-                ("toArray(ijk=(0, 0, 0))\n\nPopulate a "
                 + std::string(openvdb::VecTraits<ValueT>::IsVec ? "four" : "three")
                 + "-dimensional array with values\n"
                 "from this grid, starting at voxel (i, j, k).").c_str())
@@ -1696,23 +1658,6 @@ exportGrid(py::module_ &m)
     // Add the Python type object for this grid type to the module-level list.
     py::list gridTypes = m.attr("GridTypes");
     gridTypes.append(pyGridTypeName);
-
-    // Python buffer protocol for dense arrays
-    py::class_<DenseT>(m, (std::string("Dense") + pyGridTypeName).c_str(), py::buffer_protocol())
-    .def_buffer([](DenseT &d) -> py::buffer_info {
-        return py::buffer_info(
-            d.data(),                                // Pointer to buffer
-            sizeof(ValueT),                          // Size of one scalar
-            py::format_descriptor<ValueT>::format(), // Python struct-style format descriptor
-            3,                                       // Number of dimensions
-            { d.bbox().dim()[0],                     // Buffer dimensions
-              d.bbox().dim()[1],
-              d.bbox().dim()[2] },
-            { d.xStride(),                           // Strides (in bytes) for each index
-              d.yStride(),
-              d.zStride() }
-        );
-    });
 }
 
 } // namespace pyGrid

@@ -583,19 +583,6 @@ PYBIND11_MODULE(_core, m) // PY_OPENVDB_MODULE_NAME
     // docOptions.disable_signatures();
     // docOptions.enable_user_defined();
 
-// #ifdef PY_OPENVDB_USE_NUMPY
-//     // Initialize NumPy.
-// #ifdef PY_OPENVDB_USE_BOOST_PYTHON_NUMPY
-//     boost::python::numpy::initialize();
-// #else
-// #if PY_MAJOR_VERSION >= 3
-//     if (_import_array()) {}
-// #else
-//     import_array();
-// #endif
-// #endif
-// #endif
-
     // using namespace openvdb::OPENVDB_VERSION_NAME;
 
     // Initialize OpenVDB.

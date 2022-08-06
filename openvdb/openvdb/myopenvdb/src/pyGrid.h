@@ -712,9 +712,8 @@ copyFromArray(GridType& grid, py::buffer buffer, const typename GridType::ValueT
     Coord maxCoord(coord[0] + info.shape[0], coord[1] + info.shape[1], coord[2] + info.shape[2]);
     CoordBBox bbox(coord, maxCoord);
     DenseT valArray(bbox, static_cast<ValueT*>(info.ptr));
-    // tools::copyFromDense(grid, valArray, tolerance);
+    tools::copyFromDense(valArray, grid, tolerance);
 }
-
 
 ////////////////////////////////////////
 
